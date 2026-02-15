@@ -10,13 +10,21 @@
     </imports>
 
     <services>
-
+        <defaults autowire="true" autoconfigure="true">
+            <bind key="$baseUrl">%env(BATTERYINCLUDED_BASE_URL)%</bind>
+            <bind key="$collection">%env(BATTERYINCLUDED_COLLECTION)%</bind>
+            <bind key="$apiKey">%env(BATTERYINCLUDED_API_KEY)%</bind>
+        </defaults>
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\GreetingController" autowire="true" autoconfigure="true" public="true" />
         <!-- Put your services here -->
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Command\ExportCommand" autowire="true" autoconfigure="true" public="true" />
 
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\AdminConfigurationController" autowire="true" autoconfigure="true" public="true" />
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Form\Type\ConfigurationType" autowire="true" autoconfigure="true" public="false" />
+        <service id="BatteryIncludedSdk\Client\ApiClient" autowire="true" autoconfigure="true" public="true" />
+        <service id="BatteryIncludedSdk\Client\CurlHttpClient" autowire="true" autoconfigure="true" public="true" />
+        <service id="BatteryIncludedSdk\Client\HttpClientInterface" alias="BatteryIncludedSdk\Client\CurlHttpClient"  />
+        <service id="BatteryIncludedSdk\Service\SyncService"  autowire="true" autoconfigure="true" public="true" />
 
     </services>
 </container>
