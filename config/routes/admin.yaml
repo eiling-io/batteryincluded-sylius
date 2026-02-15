@@ -1,0 +1,6 @@
+# Define your own admin routes here
+batteryincluded_admin_configuration:
+  path: /admin/batteryincluded/configuration
+  methods: [GET, POST]
+  defaults:
+    _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\AdminConfigurationController::configure

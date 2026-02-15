@@ -1,0 +1,10 @@
+# Put your Behat suites definitions here
+
+default:
+    suites:
+        greeting_customer:
+            contexts:
+                - eiling_io_sylius_battery_included.context.ui.shop.welcome
+
+            filters:
+                tags: "@greeting_customer"

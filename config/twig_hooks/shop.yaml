@@ -1,0 +1,10 @@
+sylius_twig_hooks:
+    hooks:
+        'app_shop.greeting.dynamic':
+            content:
+                template: '@EilingIoSyliusBatteryIncludedPlugin/shop/greeting/dynamic/content.html.twig'
+                priority: 0
+        'app_shop.greeting.static':
+            content:
+                template: '@EilingIoSyliusBatteryIncludedPlugin/shop/greeting/static/content.html.twig'
+                priority: 0

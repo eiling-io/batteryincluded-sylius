@@ -1,0 +1,13 @@
+#!/bin/bash
+
+vendor/bin/console doctrine:database:create
+
+vendor/bin/console doctrine:migrations:migrate -n
+
+vendor/bin/console sylius:fixtures:load -n
+
+(cd vendor/sylius/test-application && yarn install)
+
+(cd vendor/sylius/test-application && yarn build)
+
+vendor/bin/console assets:install

@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace EilingIo\SyliusBatteryIncludedPlugin\DependencyInjection;
+
+use Sylius\Bundle\CoreBundle\DependencyInjection\PrependDoctrineMigrationsTrait;
+use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+
+final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExtension implements PrependExtensionInterface
+{
+    use PrependDoctrineMigrationsTrait;
+
+    /** @psalm-suppress UnusedVariable */
+    public function load(array $configs, ContainerBuilder $container): void
+    {
+        $config = $this->processConfiguration(new Configuration(), $configs);
+
+        $container->setParameter('batteryincluded.collection', $config['collection']);
+        $container->setParameter('batteryincluded.api_key', $config['api_key']);
+
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
+
+        $loader->load('services.xml');
+    }
+
+    public function prepend(ContainerBuilder $container): void
+    {
+        $this->prependDoctrineMigrations($container);
+    }
+
+    protected function getMigrationsNamespace(): string
+    {
+        return 'DoctrineMigrations';
+    }
+
+    protected function getMigrationsDirectory(): string
+    {
+        return '@EilingIoSyliusBatteryIncludedPlugin/src/Migrations';
+    }
+
+    protected function getNamespacesOfMigrationsExecutedBefore(): array
+    {
+        return [
+            'Sylius\Bundle\CoreBundle\Migrations',
+        ];
+    }
+}

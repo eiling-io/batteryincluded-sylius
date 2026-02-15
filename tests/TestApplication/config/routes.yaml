@@ -1,0 +1,5 @@
+eiling_io_sylius_battery_included_admin:
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/admin.yaml"
+
+eiling_io_sylius_battery_included_shop:
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
