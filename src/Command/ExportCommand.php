@@ -7,6 +7,7 @@ use BatteryIncludedSdk\Dto\ProductBaseDto;
 use BatteryIncludedSdk\Dto\ProductPropertyDto;
 use BatteryIncludedSdk\Service\SyncService;
 use Liip\ImagineBundle\Service\FilterService;
+use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
@@ -27,7 +28,8 @@ class ExportCommand extends Command
         private ProductRepositoryInterface $productRepository,
         private SyncService $syncService,
         private UrlGeneratorInterface $router,
-        private FilterService $imagineFilter
+        private FilterService $imagineFilter,
+        private ChannelContextInterface $channelContext
     ) {
         parent::__construct();
     }
@@ -37,6 +39,7 @@ class ExportCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $productsRaw = $this->productRepository->findAll();
         $products = [];
+        $channel = $this->channelContext->getChannel();
         /** @var ProductInterface $raw */
         foreach ($productsRaw as $raw) {
             $dto = new ProductBaseDto($raw->getId());
@@ -55,6 +58,17 @@ class ExportCommand extends Command
             $dto->setImageUrl($imageUrl);
             $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
             $dto->setRating($raw->getAverageRating());
+
+            $variant = $raw->getVariants()->first();
+            $price = null;
+            if ($variant !== false) {
+                $channelPricing = $variant->getChannelPricingForChannel($channel);
+                if ($channelPricing) {
+                    $price = $channelPricing->getPrice();
+                    $price /= 100;
+                }
+            }
+            $dto->setPrice($price);
 
             $manufacturerName = 'Unbekannt';
             $cap = $raw->getAttributeByCodeAndLocale('cap_brand', 'de_DE');
