@@ -49,12 +49,19 @@ class ExportCommand extends Command
             $image = $raw->getImages()->first();
             $imageUrl = null;
             if ($image) {
-                $imageUrl = $this->imagineFilter->getUrlOfFilteredImage(
+                $urlRaw = $this->imagineFilter->getUrlOfFilteredImage(
                     $image->getPath(),
                     'sylius_shop_product_thumbnail'
                 );
+                $parsed = parse_url($urlRaw);
+                $imagePath = $parsed['path'] ?? $urlRaw;
+                $baseUrl = $channel->getHostname();
+                if (!str_starts_with($baseUrl, 'http')) {
+                    $baseUrl = 'https://' . ltrim($baseUrl, '/');
+                }
+                $baseUrl = rtrim($baseUrl, '/');
+                $imageUrl = $baseUrl . $imagePath;
             }
-            $imageUrl = str_replace('http://localhost/', 'https://syliusbatteryincludedplugin.ddev.site/', $imageUrl);
             $dto->setImageUrl($imageUrl);
             $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
             $dto->setRating($raw->getAverageRating());
