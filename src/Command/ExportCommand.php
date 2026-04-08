@@ -6,6 +6,7 @@ use BatteryIncludedSdk\Dto\CategoryDto;
 use BatteryIncludedSdk\Dto\ProductBaseDto;
 use BatteryIncludedSdk\Dto\ProductPropertyDto;
 use BatteryIncludedSdk\Service\SyncService;
+use Liip\ImagineBundle\Service\FilterService;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
@@ -25,7 +26,8 @@ class ExportCommand extends Command
     public function __construct(
         private ProductRepositoryInterface $productRepository,
         private SyncService $syncService,
-        private UrlGeneratorInterface $router
+        private UrlGeneratorInterface $router,
+        private FilterService $imagineFilter
     ) {
         parent::__construct();
     }
@@ -41,7 +43,16 @@ class ExportCommand extends Command
             $dto->setName($raw->getName());
             $dto->setDescription($raw->getDescription());
             $dto->setOrdernumber($raw->getCode());
-            $dto->setImageUrl('https://syliusbatteryincludedplugin.ddev.site/media/cache/sylius_shop_product_thumbnail/'.$raw->getVariants()->first()->getProduct()->getImages()->first()->getPath());
+            $image = $raw->getImages()->first();
+            $imageUrl = null;
+            if ($image) {
+                $imageUrl = $this->imagineFilter->getUrlOfFilteredImage(
+                    $image->getPath(),
+                    'sylius_shop_product_thumbnail'
+                );
+            }
+            $imageUrl = str_replace('http://localhost/', 'https://syliusbatteryincludedplugin.ddev.site/', $imageUrl);
+            $dto->setImageUrl($imageUrl);
             $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
             $dto->setRating($raw->getAverageRating());
 
@@ -70,7 +81,13 @@ class ExportCommand extends Command
                 }
             }
 
-            $dto->setShopUrl($this->router->generate('sylius_shop_product_show', ['slug' => $raw->getSlug()], UrlGeneratorInterface::ABSOLUTE_URL));
+            $dto->setShopUrl(
+                $this->router->generate(
+                    'sylius_shop_product_show',
+                    ['slug' => $raw->getSlug()],
+                    UrlGeneratorInterface::ABSOLUTE_URL
+                )
+            );
             $products[] = $dto;
         }
 
