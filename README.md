@@ -11,6 +11,8 @@
 <h1 align="center">Plugin Skeleton</h1>
 
 <p align="center">Skeleton for starting Sylius plugins.</p>
+https://github.com/Sylius/PluginSkeleton
+
 
 ## Documentation
 

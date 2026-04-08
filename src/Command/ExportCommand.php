@@ -14,7 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[AsCommand(
     name: 'bi:export',
@@ -24,8 +24,8 @@ class ExportCommand extends Command
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository,
-        private SyncService $syncService
-
+        private SyncService $syncService,
+        private UrlGeneratorInterface $router
     ) {
         parent::__construct();
     }
@@ -41,8 +41,9 @@ class ExportCommand extends Command
             $dto->setName($raw->getName());
             $dto->setDescription($raw->getDescription());
             $dto->setOrdernumber($raw->getCode());
-            $dto->setImageUrl('https://syliusbatteryincludedplugin.ddev.site/media/cache/sylius_shop_product_original/'.$raw->getVariants()->first()->getProduct()->getImages()->first()->getPath());
+            $dto->setImageUrl('https://syliusbatteryincludedplugin.ddev.site/media/cache/sylius_shop_product_thumbnail/'.$raw->getVariants()->first()->getProduct()->getImages()->first()->getPath());
             $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
+            $dto->setRating($raw->getAverageRating());
 
             $manufacturerName = 'Unbekannt';
             $cap = $raw->getAttributeByCodeAndLocale('cap_brand', 'de_DE');
@@ -69,7 +70,7 @@ class ExportCommand extends Command
                 }
             }
 
-            $dto->setShopUrl($raw->getVariants()->first()->getProduct()->getSlug());
+            $dto->setShopUrl($this->router->generate('sylius_shop_product_show', ['slug' => $raw->getSlug()], UrlGeneratorInterface::ABSOLUTE_URL));
             $products[] = $dto;
         }
 
