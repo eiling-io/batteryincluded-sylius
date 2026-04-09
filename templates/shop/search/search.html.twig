@@ -6,8 +6,85 @@
             <!-- Linke Spalte: Filterbereich -->
             <div class="col-12 col-lg-3">
                 <h2>Filter</h2>
-                <!-- Hier können Filter, Kategorien etc. eingefügt werden -->
-                <p>Filterbereich (Platzhalter)</p>
+                {% if facets is defined and facets|length > 0 %}
+                    <div class="filters">
+                        {% for facet in facets %}
+                            <div class="mb-3">
+                                <strong>{{ facet.fieldLabel|default(facet.fieldName) }}</strong>
+                                {% if facet.type == 'select' %}
+                                    <ul class="list-unstyled ms-2">
+                                        {% for value in attribute(facet, 'values') %}
+                                            <li>
+                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
+                                                   class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
+                                                    {{ value.name }} ({{ value.count }})
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elseif facet.type == 'category' %}
+                                    <ul class="list-unstyled ms-2">
+                                        {% for cat, catData in attribute(facet, 'categories') %}
+                                            <li>
+                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ cat|url_encode }}"
+                                                   class="text-decoration-none {% if catData.checked %}fw-bold text-primary{% endif %}">
+                                                    {{ cat }} ({{ catData.count }})
+                                                </a>
+                                                {% if catData.childs is defined and catData.childs|length > 0 %}
+                                                    <ul class="list-unstyled ms-3">
+                                                        {% for child, childData in catData.childs %}
+                                                            <li>
+                                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ child|url_encode }}"
+                                                                   class="text-decoration-none {% if childData.checked %}fw-bold text-primary{% endif %}">
+                                                                    {{ child }} ({{ childData.count }})
+                                                                </a>
+                                                                {% if childData.childs is defined and childData.childs|length > 0 %}
+                                                                    <ul class="list-unstyled ms-3">
+                                                                        {% for subchild, subchildData in childData.childs %}
+                                                                            <li>
+                                                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ subchild|url_encode }}"
+                                                                                   class="text-decoration-none {% if subchildData.checked %}fw-bold text-primary{% endif %}">
+                                                                                    {{ subchild }} ({{ subchildData.count }})
+                                                                                </a>
+                                                                            </li>
+                                                                        {% endfor %}
+                                                                    </ul>
+                                                                {% endif %}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elseif facet.type == 'range' %}
+                                    <div class="ms-2">
+                                        <form method="get">
+                                            <input type="hidden" name="search" value="{{ searchWord }}" />
+                                            <label>Min: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" value="{{ facet.min|default('') }}" class="form-control form-control-sm d-inline w-auto" /></label>
+                                            <label>Max: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" value="{{ facet.max|default('') }}" class="form-control form-control-sm d-inline w-auto" /></label>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Anwenden</button>
+                                        </form>
+                                    </div>
+                                {% elseif facet.type == 'rating' %}
+                                    <ul class="list-unstyled ms-2">
+                                        {% for value in attribute(facet, 'ratings') %}
+                                            <li>
+                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
+                                                   class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
+                                                    {{ value.name }} Sterne ({{ value.count }})
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>Keine Filter verfügbar.</p>
+                {% endif %}
+
             </div>
             <div class="col-12 col-lg-9">
                 <!-- Rechte Spalte: Produkte -->

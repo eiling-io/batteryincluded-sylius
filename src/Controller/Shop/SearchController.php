@@ -27,14 +27,23 @@ class SearchController extends AbstractController
         $searchStruct->setPerPage($perPage);
         $searchStruct->setPage($currentPage);
 
+        foreach ($_GET['filter'] ?? [] as $key => $value) {
+            if ($key === '_PRODUCT.price') {
+                $searchStruct->addRangeFilter($key, $value['min'], $value['max']);
+            } else {
+                $searchStruct->addFilter($key, $value);
+            }
+        }
+
         $result = $this->browseService->browse($searchStruct);
+        $facets = $result->getFacets();
         $maxHits = $result->getFound();
         $maxPages = $result->getPages();
 
         $orderNumbers = array_values(
             array_filter(
                 array_map(
-                    static fn ($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
+                    static fn($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
                     $result->getHits()
                 )
             )
@@ -44,8 +53,9 @@ class SearchController extends AbstractController
         if (!empty($orderNumbers)) {
             $products = $this->productRepository->findBy(['code' => $orderNumbers]);
         }
-        return $this->render('@EilingIoSyliusBatteryIncludedPlugin/shop/search/search.html.twig',
-            compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages')
+        return $this->render(
+            '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search.html.twig',
+            compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages', 'facets')
         );
     }
 }
