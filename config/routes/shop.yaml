@@ -11,3 +11,9 @@ eiling_io_sylius_battery_included_dynamic_welcome:
     defaults:
         _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\GreetingController::dynamicallyGreetAction
         name: ~
+
+eilingio_shop_custom_page:
+   path: /search
+   defaults:
+     _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController::search
+     name: ~

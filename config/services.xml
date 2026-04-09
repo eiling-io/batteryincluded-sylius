@@ -32,6 +32,6 @@
                  autoconfigure="true">
             <argument type="service" id="EilingIo\SyliusBatteryIncludedPlugin\Repository\ProductRepositoryDecorator.inner" />
         </service>
-
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController" public="true" autowire="true" autoconfigure="true"/>
     </services>
 </container>
