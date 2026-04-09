@@ -16,7 +16,7 @@
             <bind key="$apiKey">%env(BATTERYINCLUDED_API_KEY)%</bind>
         </defaults>
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\GreetingController" autowire="true" autoconfigure="true" public="true" />
-        <!-- Put your services here -->
+
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Command\ExportCommand" autowire="true" autoconfigure="true" public="true" />
 
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\AdminConfigurationController" autowire="true" autoconfigure="true" public="true" />

@@ -1,18 +1,4 @@
-# Delete these routes and define your own shop routes here
-
-eiling_io_sylius_battery_included_static_welcome:
-    path: /static-welcome/{name}
-    defaults:
-        _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\GreetingController::staticallyGreetAction
-        name: ~
-
-eiling_io_sylius_battery_included_dynamic_welcome:
-    path: /dynamic-welcome/{name}
-    defaults:
-        _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\GreetingController::dynamicallyGreetAction
-        name: ~
-
-eilingio_shop_custom_page:
+eiling_io_sylius_battery_included_search:
    path: /search
    defaults:
      _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController::search
