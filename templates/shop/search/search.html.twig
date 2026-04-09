@@ -1,6 +1,57 @@
 {% extends '@SyliusShop/shared/layout/base.html.twig' %}
 
 {% block content %}
-    <h1>Eigene Shop-Seite</h1>
-    <p>{{ message }}</p>
+    <div class="container mt-4 mb-5">
+        <div class="row mt-5">
+            <!-- Linke Spalte: Filterbereich -->
+            <div class="col-12 col-lg-3">
+                <h2>Filter</h2>
+                <!-- Hier können Filter, Kategorien etc. eingefügt werden -->
+                <p>Filterbereich (Platzhalter)</p>
+            </div>
+            <div class="col-12 col-lg-9">
+                <!-- Rechte Spalte: Produkte -->
+                <h1>Suchergebnisse für {{ searchWord }}</h1>
+                <div class="row flex-column flex-md-row align-items-end justify-content-end gap-2 gap-md-0 mb-5">
+                    <div class="products-grid">
+                        {% for product in products %}
+                            <div>{{ component('sylius_shop:product:card', { product: product, template: hookable_metadata.configuration.product_template|default('@SyliusShop/product/common/card.html.twig') }) }}</div>
+                        {% else %}
+                            <div style="grid-column: 1 / -1; text-align: center; color: #888;">Keine Produkte gefunden.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ul class="pagination justify-content-center mt-4">
+            {# Previous Button #}
+            <li class="page-item{% if currentPage == 1 %} disabled{% endif %}">
+                <a class="page-link" href="?search={{ searchWord }}&page={{ currentPage - 1 }}" tabindex="-1">Previous</a>
+            </li>
+
+            {# Seitenzahlen #}
+            {% for page in 1..maxPages %}
+                <li class="page-item{% if page == currentPage %} active{% endif %}">
+                    {% if page == currentPage %}
+                        <span class="page-link">{{ page }}</span>
+                    {% else %}
+                        <a class="page-link" href="?search={{ searchWord }}&page={{ page }}">{{ page }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+
+            {# Next Button #}
+            <li class="page-item{% if currentPage == maxPages %} disabled{% endif %}">
+                <a class="page-link" href="?search={{ searchWord }}&page={{ currentPage + 1 }}">Next</a>
+            </li>
+        </ul>
+    </div>
+
 {% endblock %}
+
+{% macro simple(paginator, options) %}
+    {% if paginator.haveToPaginate() %}
+        {{ pagerfanta(paginator, 'twig', options|default({'template': '@SyliusShop/shared/pagination/bootstrap_5.html.twig'})) }}
+    {% endif %}
+{% endmacro %}

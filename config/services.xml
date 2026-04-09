@@ -25,13 +25,7 @@
         <service id="BatteryIncludedSdk\Client\CurlHttpClient" autowire="true" autoconfigure="true" public="true" />
         <service id="BatteryIncludedSdk\Client\HttpClientInterface" alias="BatteryIncludedSdk\Client\CurlHttpClient"  />
         <service id="BatteryIncludedSdk\Service\SyncService"  autowire="true" autoconfigure="true" public="true" />
-
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Repository\ProductRepositoryDecorator"
-                 decorates="sylius.repository.product"
-                 autowire="true"
-                 autoconfigure="true">
-            <argument type="service" id="EilingIo\SyliusBatteryIncludedPlugin\Repository\ProductRepositoryDecorator.inner" />
-        </service>
+        <service id="BatteryIncludedSdk\Shop\BrowseService"  autowire="true" autoconfigure="true" public="true" />
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController" public="true" autowire="true" autoconfigure="true"/>
     </services>
 </container>
