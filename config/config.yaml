@@ -1,1 +1,7 @@
-# Put your plugin configuration here
+sylius_twig_hooks:
+  hooks:
+    'sylius_shop.base.header.content':
+      # Gib deinem Block einen EIGENEN Namen (darf NICHT 'template' heißen)
+      eiling_io_searchbox:
+        template: '@EilingIoSyliusBatteryIncludedPlugin/shop/header/_searchbox.html.twig'
+        priority: -10
