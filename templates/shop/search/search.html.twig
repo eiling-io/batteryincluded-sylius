@@ -14,7 +14,7 @@
                                     <ul class="list-unstyled ms-2">
                                         {% for value in attribute(facet, 'values') %}
                                             <li>
-                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
+                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
                                                    class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
                                                     {{ value.name }} ({{ value.count }})
                                                 </a>
@@ -26,7 +26,7 @@
                                         {% for cat, catData in attribute(facet, 'categories') %}
                                             {% set catPath = cat %}
                                             <li>
-                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ catPath|replace({' ': '+'})|url_encode }}"
+                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ catPath|replace({' ': '+'})|url_encode }}"
                                                    class="text-decoration-none {% if catData.checked %}fw-bold text-primary{% endif %}">
                                                     {{ cat }} ({{ catData.count }})
                                                 </a>
@@ -35,7 +35,7 @@
                                                         {% for child, childData in catData.childs %}
                                                             {% set childPath = catPath ~ '+>+' ~ child %}
                                                             <li>
-                                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ childPath|replace({' ': '+'})|url_encode }}"
+                                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ childPath|replace({' ': '+'})|url_encode }}"
                                                                    class="text-decoration-none {% if childData.checked %}fw-bold text-primary{% endif %}">
                                                                     {{ child }} ({{ childData.count }})
                                                                 </a>
@@ -44,7 +44,7 @@
                                                                         {% for subchild, subchildData in childData.childs %}
                                                                             {% set subchildPath = childPath ~ '+>+' ~ subchild %}
                                                                             <li>
-                                                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ subchildPath|replace({' ': '+'})|url_encode }}"
+                                                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ subchildPath|replace({' ': '+'})|url_encode }}"
                                                                                    class="text-decoration-none {% if subchildData.checked %}fw-bold text-primary{% endif %}">
                                                                                     {{ subchild }} ({{ subchildData.count }})
                                                                                 </a>
@@ -72,7 +72,7 @@
                                     <ul class="list-unstyled ms-2">
                                         {% for value in attribute(facet, 'ratings') %}
                                             <li>
-                                                <a href="?search={{ searchWord }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
+                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
                                                    class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
                                                     {{ value.name }} Sterne ({{ value.count }})
                                                 </a>
