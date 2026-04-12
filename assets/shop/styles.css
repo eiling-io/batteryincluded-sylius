@@ -1,0 +1,43 @@
+.text-sylius-green {
+    color: #22b99a !important;
+}
+
+.filter-item {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.filter-item:hover {
+    background-color: #f0fdfa;
+    color: #22b99a !important;
+    border-color: #ccf3eb;
+}
+
+.active-filter {
+    background-color: #22b99a;
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+.active-filter .badge {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+.row.align-items-center > .col:first-child {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+#search-overlay {
+    min-height: 60px;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+}

@@ -8,7 +8,8 @@
                        name="search"
                        class="form-control border-secondary"
                        placeholder="Produkte suchen..."
-                       aria-label="Suchen">
+                       aria-label="Suchen"
+                       data-ajax-url="{{ path('eiling_io_sylius_battery_included_search_ajax') }}">
 
                 <button class="btn btn-primary px-3 rounded-end" type="submit">
                     <i class="bi bi-search text-white"></i>
@@ -19,67 +20,3 @@
         </form>
     </div>
 </div>
-
-<style>
-    .row.align-items-center > .col:first-child {
-        flex: 0 0 auto !important;
-        width: auto !important;
-    }
-    #search-overlay {
-        min-height: 60px;
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
-    }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.querySelector('input[name="search"]');
-    const overlay = document.getElementById('search-overlay');
-    let overlayActive = false;
-    let overlayLinkClicked = false;
-
-    function showOverlay() {
-        overlay.style.display = 'block';
-        overlay.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div></div>';
-        fetch('{{ path('eiling_io_sylius_battery_included_search_ajax') }}?search=' + encodeURIComponent(input.value))
-            .then(r => r.text())
-            .then(html => {
-                overlay.innerHTML = html;
-            });
-    }
-
-    function hideOverlay() {
-        overlay.style.display = 'none';
-    }
-
-    input.addEventListener('focus', function() {
-        showOverlay();
-    });
-
-    input.addEventListener('input', function() {
-        showOverlay();
-    });
-
-    input.addEventListener('blur', function() {
-        setTimeout(function() {
-            if (!overlayActive && !overlayLinkClicked) {
-                hideOverlay();
-            }
-        }, 150);
-    });
-
-    overlay.addEventListener('mousedown', function(e) {
-        overlayActive = true;
-    });
-    overlay.addEventListener('mouseup', function(e) {
-        overlayActive = false;
-    });
-    overlay.addEventListener('click', function(e) {
-        if (e.target.tagName === 'A') {
-            overlayLinkClicked = true;
-            overlay.style.display = 'none';
-            setTimeout(function() { overlayLinkClicked = false; }, 500);
-        }
-    });
-});
-</script>
