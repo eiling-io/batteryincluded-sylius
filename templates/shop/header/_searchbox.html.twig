@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = document.querySelector('input[name="search"]');
     const overlay = document.getElementById('search-overlay');
     let overlayActive = false;
+    let overlayLinkClicked = false;
 
     function showOverlay() {
         overlay.style.display = 'block';
@@ -61,16 +62,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     input.addEventListener('blur', function() {
         setTimeout(function() {
-            if (!overlayActive) hideOverlay();
+            if (!overlayActive && !overlayLinkClicked) {
+                hideOverlay();
+            }
         }, 150);
     });
 
-    overlay.addEventListener('mousedown', function() {
+    overlay.addEventListener('mousedown', function(e) {
         overlayActive = true;
     });
-    overlay.addEventListener('mouseup', function() {
+    overlay.addEventListener('mouseup', function(e) {
         overlayActive = false;
-        input.focus();
+    });
+    overlay.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A') {
+            overlayLinkClicked = true;
+            overlay.style.display = 'none';
+            setTimeout(function() { overlayLinkClicked = false; }, 500);
+        }
     });
 });
 </script>

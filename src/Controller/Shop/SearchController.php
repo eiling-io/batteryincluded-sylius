@@ -2,6 +2,7 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
+use BatteryIncludedSdk\Highlights\HighlightsService;
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use BatteryIncludedSdk\Shop\BrowseService;
 use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
@@ -16,6 +17,7 @@ class SearchController extends AbstractController
     public function __construct(
         private readonly BrowseService $browseService,
         private readonly SuggestService $suggestService,
+        private readonly HighlightsService $highlightsService,
         private readonly ProductRepositoryInterface $productRepository
     ) {
     }
@@ -67,7 +69,7 @@ class SearchController extends AbstractController
 
     public function searchAjax(Request $request): Response
     {
-        $searchWord = $request->query->get('search');
+        $searchWord = $request->query->get('search', '');
         $searchStruct = new SuggestSearchStruct();
         $searchStruct->setQuery($searchWord);
 
@@ -89,9 +91,14 @@ class SearchController extends AbstractController
 
         $queryCompletions = $result->getQueryCompletions();
 
+        $highlights = [];
+        if (strlen($searchWord) === 0) {
+            $highlights = $this->highlightsService->getHighlights()->getAll();
+        }
+
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search_ajax.html.twig',
-            compact('products', 'searchWord', 'queryCompletions')
+            compact('products', 'searchWord', 'queryCompletions', 'highlights')
         );
     }
 }

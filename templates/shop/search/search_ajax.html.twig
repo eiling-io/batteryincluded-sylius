@@ -1,11 +1,28 @@
 <div class="search-overlay-content p-2">
+    {% if highlights is defined and highlights.querySuggestions is defined and highlights.querySuggestions|length > 0 %}
+        <div class="mb-2">
+            <div class="fw-bold small text-secondary mb-1">Search in natural Language</div>
+            <ul class="list-unstyled mb-2">
+                {% for suggestion in highlights.querySuggestions %}
+                    <li>
+                        <a href="{{ path('eiling_io_sylius_battery_included_search', {'search': suggestion}) }}"
+                           class="text-decoration-none text-primary">
+                            {{ suggestion }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
     {% if queryCompletions is defined and queryCompletions|length > 0 %}
         <div class="mb-2">
             <div class="fw-bold small text-secondary mb-1">Suchvorschläge</div>
             <ul class="list-unstyled mb-2">
                 {% for suggestion in queryCompletions %}
                     <li>
-                        <a href="{{ path('eiling_io_sylius_battery_included_search', {'search': suggestion.value}) }}" class="text-decoration-none text-primary">
+                        <a href="{{ path('eiling_io_sylius_battery_included_search', {'search': suggestion.value}) }}"
+                           class="text-decoration-none text-primary">
                             {{ suggestion.value }}
                         </a>
                     </li>
@@ -20,11 +37,25 @@
                 {% for product in products %}
                     <li class="d-flex align-items-center mb-2">
                         {% if product.images|length > 0 %}
-                            <img src="{{ product.images|first.path|imagine_filter('sylius_shop_product_thumbnail') }}" alt="{{ product.name }}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                            <img src="{{ product.images|first.path|imagine_filter('sylius_shop_product_thumbnail') }}"
+                                 alt="{{ product.name }}" class="me-2"
+                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                         {% endif %}
-                        <a href="{{ path('sylius_shop_product_show', {'slug': product.slug}) }}" class="text-decoration-none text-dark">
-                            {{ product.name }}
-                        </a>
+                        <div class="flex-grow-1">
+                            <a href="{{ path('sylius_shop_product_show', {'slug': product.slug}) }}"
+                               class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                            {% if product.variants|length > 0 and product.variants|first.channelPricings is defined %}
+                                {% set channel = sylius.channel.code %}
+                                {% set pricing = product.variants|first.channelPricings[channel] ?? null %}
+                                {% if pricing %}
+                                    <div class="small text-muted">{{ (pricing.price / 100)|number_format(2, ',', '.') }}
+                                         €
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
