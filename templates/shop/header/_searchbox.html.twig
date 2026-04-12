@@ -1,11 +1,27 @@
-<div class="ms-3 d-inline-block">
-    <div class="input-group">
-        <input type="text"
-               class="form-control form-control-sm"
-               placeholder="Search"
-               aria-label="Input">
-        <button class="btn btn-outline-primary btn-sm" type="button">
-            Search<i class="bi bi-arrow-right"></i>
-        </button>
+{# @EilingIoSyliusBatteryIncludedPlugin/shop/header/_searchbox.html.twig #}
+
+<div class="col-auto d-none d-md-block ms-2 me-auto">
+    <div style="width: 750px;">
+        <form action="{{ path('eiling_io_sylius_battery_included_search') }}" method="get">
+            <div class="input-group input-group-sm">
+                <input type="text"
+                       name="criteria[search][value]"
+                       class="form-control border-secondary"
+                       placeholder="Produkte suchen..."
+                       aria-label="Suchen">
+
+                <button class="btn btn-primary px-3" type="submit">
+                    <i class="bi bi-search text-white"></i>
+                    <span class="d-none d-lg-inline ms-1 text-white fw-medium">Suchen</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+<style>
+    .row.align-items-center > .col:first-child {
+        flex: 0 0 auto !important;
+        width: auto !important;
+    }
+</style>
