@@ -63,8 +63,20 @@
                                     <div class="ms-2">
                                         <form method="get">
                                             <input type="hidden" name="search" value="{{ searchWord }}" />
-                                            <label>Min: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" value="{{ facet.min|default('') }}" class="form-control form-control-sm d-inline w-auto" /></label>
-                                            <label>Max: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" value="{{ facet.max|default('') }}" class="form-control form-control-sm d-inline w-auto" /></label>
+                                            {% for filterKey, filterValue in filter %}
+                                                {% if filterKey != facet.fieldName %}
+                                                    {% if filterValue is iterable %}
+                                                        {% for subKey, subValue in filterValue %}
+                                                            <input type="hidden" name="filter[{{ filterKey }}][{{ subKey }}]" value="{{ subValue }}" />
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <input type="hidden" name="filter[{{ filterKey }}]" value="{{ filterValue }}" />
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <label>Min: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" value="{% if filter[facet.fieldName]['min'] is defined %}{{ filter[facet.fieldName]['min'] }}{% else %}{{ facet.min|default('') }}{% endif %}" class="form-control form-control-sm d-inline w-auto" /></label>
+                                            <label>Max: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" value="{% if filter[facet.fieldName]['max'] is defined %}{{ filter[facet.fieldName]['max'] }}{% else %}{{ facet.max|default('') }}{% endif %}" class="form-control form-control-sm d-inline w-auto" /></label>
                                             <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Anwenden</button>
                                         </form>
                                     </div>
