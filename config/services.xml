@@ -26,6 +26,7 @@
         <service id="BatteryIncludedSdk\Client\HttpClientInterface" alias="BatteryIncludedSdk\Client\CurlHttpClient"  />
         <service id="BatteryIncludedSdk\Service\SyncService"  autowire="true" autoconfigure="true" public="true" />
         <service id="BatteryIncludedSdk\Shop\BrowseService"  autowire="true" autoconfigure="true" public="true" />
+        <service id="BatteryIncludedSdk\Suggest\SuggestService"  autowire="true" autoconfigure="true" public="true" />
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController" public="true" autowire="true" autoconfigure="true"/>
     </services>
 </container>

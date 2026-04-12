@@ -3,20 +3,20 @@
 <div class="col-auto d-none d-md-block ms-2 me-auto">
     <div style="width: 750px;">
         <form action="{{ path('eiling_io_sylius_battery_included_search') }}" method="get">
-            <div class="input-group input-group-sm">
+            <div class="input-group input-group-sm position-relative">
                 <input type="text"
-                       name="criteria[search][value]"
+                       name="search"
                        class="form-control border-secondary"
                        placeholder="Produkte suchen..."
                        aria-label="Suchen">
 
-                <button class="btn btn-primary px-3" type="submit">
+                <button class="btn btn-primary px-3 rounded-end" type="submit">
                     <i class="bi bi-search text-white"></i>
                     <span class="d-none d-lg-inline ms-1 text-white fw-medium">Suchen</span>
                 </button>
+                <div id="search-overlay" class="position-absolute bg-white border rounded shadow" style="display:none; z-index: 1050; width: 100%; left: 0; top: 100%; max-height: 400px; overflow-y: auto;"></div>
             </div>
         </form>
-        <div id="search-overlay" class="position-absolute bg-white border rounded shadow" style="display:none; z-index: 1050; width: 100%; top: 45px; left: 0; max-height: 400px; overflow-y: auto;"></div>
     </div>
 </div>
 
@@ -27,12 +27,13 @@
     }
     #search-overlay {
         min-height: 60px;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const input = document.querySelector('input[name="criteria[search][value]"]');
+    const input = document.querySelector('input[name="search"]');
     const overlay = document.getElementById('search-overlay');
     let overlayActive = false;
 
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showOverlay();
     });
 
-    input.addEventListener('blur', function(e) {
+    input.addEventListener('blur', function() {
         setTimeout(function() {
             if (!overlayActive) hideOverlay();
         }, 150);

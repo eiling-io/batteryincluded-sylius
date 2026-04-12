@@ -10,7 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "batteryincluded/batteryincluded-php-sdk": "^0.6.0",
+        "batteryincluded/batteryincluded-php-sdk": "^0.7.0",
         "sylius/sylius": "^2.0"
     },
     "require-dev": {

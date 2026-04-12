@@ -1,9 +1,36 @@
-{% block content %}
-    <div class="container mt-4 mb-5">
-        <div class="row mt-5">
-
+<div class="search-overlay-content p-2">
+    {% if queryCompletions is defined and queryCompletions|length > 0 %}
+        <div class="mb-2">
+            <div class="fw-bold small text-secondary mb-1">Suchvorschläge</div>
+            <ul class="list-unstyled mb-2">
+                {% for suggestion in queryCompletions %}
+                    <li>
+                        <a href="{{ path('eiling_io_sylius_battery_included_search', {'search': suggestion.value}) }}" class="text-decoration-none text-primary">
+                            {{ suggestion.value }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
-    </div>
-
-
-{% endblock %}
+    {% endif %}
+    {% if products is defined and products|length > 0 %}
+        <div class="mb-2">
+            <div class="fw-bold small text-secondary mb-1">Produkte</div>
+            <ul class="list-unstyled mb-2">
+                {% for product in products %}
+                    <li class="d-flex align-items-center mb-2">
+                        {% if product.images|length > 0 %}
+                            <img src="{{ product.images|first.path|imagine_filter('sylius_shop_product_thumbnail') }}" alt="{{ product.name }}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                        {% endif %}
+                        <a href="{{ path('sylius_shop_product_show', {'slug': product.slug}) }}" class="text-decoration-none text-dark">
+                            {{ product.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    {% if (products is not defined or products|length == 0) and (queryCompletions is not defined or queryCompletions|length == 0) %}
+        <div class="text-muted small py-3 text-center">Keine Treffer</div>
+    {% endif %}
+</div>
