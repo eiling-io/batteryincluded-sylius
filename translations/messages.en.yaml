@@ -9,3 +9,7 @@ eiling_io_sylius_battery_included:
     results_for: "Search results for '%searchWord%'"
     no_products: "No products found."
     filter_button: "FILTER"
+    natural_language: "Search in natural language"
+    suggestions: "Suggestions"
+    products: "Products"
+    no_results: "No results found."

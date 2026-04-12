@@ -1,7 +1,7 @@
 <div class="search-overlay-content p-2">
     {% if highlights is defined and highlights.querySuggestions is defined and highlights.querySuggestions|length > 0 %}
         <div class="mb-2">
-            <div class="fw-bold small text-secondary mb-1">Search in natural Language</div>
+            <div class="fw-bold small text-secondary mb-1">{{ 'eiling_io_sylius_battery_included.search.natural_language'|trans }}</div>
             <ul class="list-unstyled mb-2">
                 {% for suggestion in highlights.querySuggestions %}
                     <li>
@@ -17,7 +17,7 @@
 
     {% if queryCompletions is defined and queryCompletions|length > 0 %}
         <div class="mb-2">
-            <div class="fw-bold small text-secondary mb-1">Suchvorschläge</div>
+            <div class="fw-bold small text-secondary mb-1">{{ 'eiling_io_sylius_battery_included.search.suggestions'|trans }}</div>
             <ul class="list-unstyled mb-2">
                 {% for suggestion in queryCompletions %}
                     <li>
@@ -32,7 +32,7 @@
     {% endif %}
     {% if products is defined and products|length > 0 %}
         <div class="mb-2">
-            <div class="fw-bold small text-secondary mb-1">Produkte</div>
+            <div class="fw-bold small text-secondary mb-1">{{ 'eiling_io_sylius_battery_included.search.products'|trans }}</div>
             <ul class="list-unstyled mb-2">
                 {% for product in products %}
                     <li class="d-flex align-items-center mb-2">
@@ -62,6 +62,6 @@
         </div>
     {% endif %}
     {% if (products is not defined or products|length == 0) and (queryCompletions is not defined or queryCompletions|length == 0) %}
-        <div class="text-muted small py-3 text-center">Keine Treffer</div>
+        <div class="text-muted small py-3 text-center">{{ 'eiling_io_sylius_battery_included.search.no_results'|trans }}</div>
     {% endif %}
 </div>
