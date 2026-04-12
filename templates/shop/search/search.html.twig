@@ -3,55 +3,55 @@
 {% block content %}
     <div class="container mt-4 mb-5">
         <div class="row mt-5">
-            <div class="col-12 col-lg-3">
-                <h2>Filter</h2>
+            <div class="col-12 col-lg-3 border-end pe-lg-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="h5 fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">Filter</h4>
+                    {% if filter|length > 0 %}
+                        <a href="?search={{ searchWord }}" class="btn btn-link btn-sm text-muted p-0 text-decoration-none">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </a>
+                    {% endif %}
+                </div>
+
                 {% if facets is defined and facets|length > 0 %}
-                    <div class="filters">
+                    <div class="accordion accordion-flush" id="filterAccordion">
                         {% for facet in facets %}
-                            <div class="mb-3">
-                                <strong>{{ facet.fieldLabel|default(facet.fieldName) }}</strong>
+                            <div class="mb-4 pb-3 border-bottom">
+                                <label class="fw-bold mb-2 d-block text-dark">{{ facet.fieldLabel|default(facet.fieldName) }}</label>
+
+                                {# --- SELECT / ATTRIBUTE FILTER --- #}
                                 {% if facet.type == 'select' %}
-                                    <ul class="list-unstyled ms-2">
+                                    <div class="filter-list custom-scrollbar" style="max-height: 250px; overflow-y: auto;">
                                         {% for value in attribute(facet, 'values') %}
-                                            <li>
+                                            <div class="mb-1">
                                                 <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
-                                                   class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
-                                                    {{ value.name }} ({{ value.count }})
+                                                   class="d-flex justify-content-between align-items-center text-decoration-none py-1 px-2 rounded filter-item {% if value.checked %}active-filter{% else %}text-muted{% endif %}">
+                                                    <span>{{ value.name }}</span>
+                                                    <span class="badge rounded-pill bg-light text-dark fw-normal">{{ value.count }}</span>
                                                 </a>
-                                            </li>
+                                            </div>
                                         {% endfor %}
-                                    </ul>
+                                    </div>
+
+                                    {# --- CATEGORY / TREE FILTER --- #}
                                 {% elseif facet.type == 'category' %}
-                                    <ul class="list-unstyled ms-2">
+                                    <ul class="list-unstyled ms-1">
                                         {% for cat, catData in attribute(facet, 'categories') %}
                                             {% set catPath = cat %}
-                                            <li>
+                                            <li class="mb-1">
                                                 <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ catPath|replace({' ': '+'})|url_encode }}"
-                                                   class="text-decoration-none {% if catData.checked %}fw-bold text-primary{% endif %}">
-                                                    {{ cat }} ({{ catData.count }})
+                                                   class="text-decoration-none d-block py-1 {% if catData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}">
+                                                    <i class="bi bi-chevron-right small me-1"></i>{{ cat }} ({{ catData.count }})
                                                 </a>
                                                 {% if catData.childs is defined and catData.childs|length > 0 %}
-                                                    <ul class="list-unstyled ms-3">
+                                                    <ul class="list-unstyled ms-3 border-start ps-2">
                                                         {% for child, childData in catData.childs %}
                                                             {% set childPath = catPath ~ '+>+' ~ child %}
-                                                            <li>
+                                                            <li class="mb-1">
                                                                 <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ childPath|replace({' ': '+'})|url_encode }}"
-                                                                   class="text-decoration-none {% if childData.checked %}fw-bold text-primary{% endif %}">
+                                                                   class="text-decoration-none d-block small {% if childData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}">
                                                                     {{ child }} ({{ childData.count }})
                                                                 </a>
-                                                                {% if childData.childs is defined and childData.childs|length > 0 %}
-                                                                    <ul class="list-unstyled ms-3">
-                                                                        {% for subchild, subchildData in childData.childs %}
-                                                                            {% set subchildPath = childPath ~ '+>+' ~ subchild %}
-                                                                            <li>
-                                                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ subchildPath|replace({' ': '+'})|url_encode }}"
-                                                                                   class="text-decoration-none {% if subchildData.checked %}fw-bold text-primary{% endif %}">
-                                                                                    {{ subchild }} ({{ subchildData.count }})
-                                                                                </a>
-                                                                            </li>
-                                                                        {% endfor %}
-                                                                    </ul>
-                                                                {% endif %}
                                                             </li>
                                                         {% endfor %}
                                                     </ul>
@@ -59,47 +59,69 @@
                                             </li>
                                         {% endfor %}
                                     </ul>
+
+                                    {# --- PRICE RANGE FILTER --- #}
                                 {% elseif facet.type == 'range' %}
-                                    <div class="ms-2">
+                                    <div class="mt-2">
                                         <form method="get">
                                             <input type="hidden" name="search" value="{{ searchWord }}" />
                                             {% for filterKey, filterValue in filter %}
                                                 {% if filterKey != facet.fieldName %}
                                                     {% if filterValue is iterable %}
-                                                        {% for subKey, subValue in filterValue %}
-                                                            <input type="hidden" name="filter[{{ filterKey }}][{{ subKey }}]" value="{{ subValue }}" />
-                                                        {% endfor %}
+                                                        {% for subKey, subValue in filterValue %}<input type="hidden" name="filter[{{ filterKey }}][{{ subKey }}]" value="{{ subValue }}" />{% endfor %}
                                                     {% else %}
                                                         <input type="hidden" name="filter[{{ filterKey }}]" value="{{ filterValue }}" />
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}
 
-                                            <label>Min: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" value="{% if filter[facet.fieldName]['min'] is defined %}{{ filter[facet.fieldName]['min'] }}{% else %}{{ facet.min|default('') }}{% endif %}" class="form-control form-control-sm d-inline w-auto" /></label>
-                                            <label>Max: <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" value="{% if filter[facet.fieldName]['max'] is defined %}{{ filter[facet.fieldName]['max'] }}{% else %}{{ facet.max|default('') }}{% endif %}" class="form-control form-control-sm d-inline w-auto" /></label>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Anwenden</button>
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text bg-white">€</span>
+                                                <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]"
+                                                       placeholder="Min" class="form-control"
+                                                       value="{% if filter[facet.fieldName]['min'] is defined %}{{ filter[facet.fieldName]['min'] }}{% else %}{{ facet.min|default('') }}{% endif %}">
+                                                <span class="input-group-text bg-white border-start-0 border-end-0">-</span>
+                                                <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]"
+                                                       placeholder="Max" class="form-control"
+                                                       value="{% if filter[facet.fieldName]['max'] is defined %}{{ filter[facet.fieldName]['max'] }}{% else %}{{ facet.max|default('') }}{% endif %}">
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100 mt-1">Anwenden</button>
                                         </form>
                                     </div>
+
+                                    {# --- RATING FILTER --- #}
                                 {% elseif facet.type == 'rating' %}
-                                    <ul class="list-unstyled ms-2">
+                                    <div class="filter-list">
                                         {% for value in attribute(facet, 'ratings') %}
-                                            <li>
-                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
-                                                   class="text-decoration-none {% if value.checked %}fw-bold text-primary{% endif %}">
-                                                    {{ value.name }} Sterne ({{ value.count }})
-                                                </a>
-                                            </li>
+                                            <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
+                                               class="text-decoration-none d-flex align-items-center py-1 {% if value.checked %}text-sylius-green fw-bold{% else %}text-muted{% endif %}">
+                                                <div class="text-warning me-2">
+                                                    {% for i in 1..5 %}
+                                                        <i class="bi bi-star{% if i <= value.name %}-fill{% endif %}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                                <span class="small">({{ value.count }})</span>
+                                            </a>
                                         {% endfor %}
-                                    </ul>
+                                    </div>
                                 {% endif %}
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p>Keine Filter verfügbar.</p>
+                    <div class="alert alert-light border-0 p-0 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i> Keine weiteren Filter verfügbar.
+                    </div>
                 {% endif %}
-
             </div>
+
+            <style>
+                .text-sylius-green { color: #22b99a !important; }
+                .filter-item:hover { background-color: #f8f9fa; color: #22b99a !important; }
+                .active-filter { background-color: #e9ecef; color: #22b99a !important; font-weight: bold; }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
+            </style>
             <div class="col-12 col-lg-9">
                 <h1>Suchergebnisse für {{ searchWord }}</h1>
                 <div class="row flex-column flex-md-row align-items-end justify-content-end gap-2 gap-md-0 mb-5">
