@@ -28,10 +28,10 @@
             {# 2. Der eigentliche Filter-Bereich #}
             <div class="col-12 col-lg-3 border-end pe-lg-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="h5 fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">Filter</h4>
+                    <h4 class="h5 fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">{{ 'eiling_io_sylius_battery_included.search.filter'|trans }}</h4>
                     {% if filter|length > 0 %}
                         <a href="?search={{ searchWord }}" class="btn btn-link btn-sm text-muted p-0 text-decoration-none">
-                            <span class="me-1">✕</span>Reset
+                            <span class="me-1">✕</span>{{ 'eiling_io_sylius_battery_included.search.reset'|trans }}
                         </a>
                     {% endif %}
                 </div>
@@ -83,7 +83,7 @@
                                             <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" class="form-control border-secondary-subtle" placeholder="Min" value="{{ filter[facet.fieldName]['min']|default(facet.min) }}">
                                             <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" class="form-control border-secondary-subtle border-start-0" placeholder="Max" value="{{ filter[facet.fieldName]['max']|default(facet.max) }}">
                                         </div>
-                                        <button type="submit" class="btn btn-sm btn-outline-dark w-100 mt-1" style="font-size: 0.75rem;">FILTERN</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-dark w-100 mt-1" style="font-size: 0.75rem;">{{ 'eiling_io_sylius_battery_included.search.filter_button'|trans }}</button>
                                     </form>
 
                                 {% elseif facet.type == 'rating' %}
@@ -105,19 +105,19 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-muted small">Keine Filter verfügbar.</div>
+                    <div class="text-muted small">{{ 'eiling_io_sylius_battery_included.search.no_filters'|trans }}</div>
                 {% endif %}
             </div>
 
             <div class="col-12 col-lg-9">
-                <h1>Suchergebnisse für {{ searchWord }}</h1>
+                <h1>{{ 'eiling_io_sylius_battery_included.search.results_for'|trans({'%searchWord%': searchWord}) }}</h1>
                 <div class="row flex-column flex-md-row align-items-end justify-content-end gap-2 gap-md-0 mb-5">
                     <div class="products-grid">
                         {% for product in products %}
                             <div>{{ component('sylius_shop:product:card', { product: product, template: hookable_metadata.configuration.product_template|default('@SyliusShop/product/common/card.html.twig') }) }}</div>
                         {% else %}
                             <div style="grid-column: 1 / -1; text-align: center; color: #888;">
-                                Keine Produkte gefunden.
+                                {{ 'eiling_io_sylius_battery_included.search.no_products'|trans }}
                             </div>
                         {% endfor %}
                     </div>

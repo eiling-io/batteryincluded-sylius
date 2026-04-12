@@ -7,13 +7,13 @@
                 <input type="text"
                        name="search"
                        class="form-control border-secondary"
-                       placeholder="Produkte suchen..."
-                       aria-label="Suchen"
+                       placeholder="{{ 'eiling_io_sylius_battery_included.searchbox.placeholder'|trans }}"
+                       aria-label="{{ 'eiling_io_sylius_battery_included.searchbox.button'|trans }}"
                        data-ajax-url="{{ path('eiling_io_sylius_battery_included_search_ajax') }}">
 
                 <button class="btn btn-primary px-3 rounded-end" type="submit">
                     <i class="bi bi-search text-white"></i>
-                    <span class="d-none d-lg-inline ms-1 text-white fw-medium">Suchen</span>
+                    <span class="d-none d-lg-inline ms-1 text-white fw-medium">{{ 'eiling_io_sylius_battery_included.searchbox.button'|trans }}</span>
                 </button>
                 <div id="search-overlay" class="position-absolute bg-white border rounded shadow" style="display:none; z-index: 1050; width: 100%; left: 0; top: 100%; max-height: 400px; overflow-y: auto;"></div>
             </div>

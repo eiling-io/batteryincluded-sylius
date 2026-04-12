@@ -1,0 +1,11 @@
+eiling_io_sylius_battery_included:
+  searchbox:
+    placeholder: "Search for products..."
+    button: "Search"
+  search:
+    filter: "Filter"
+    reset: "Reset"
+    no_filters: "No filters available."
+    results_for: "Search results for '%searchWord%'"
+    no_products: "No products found."
+    filter_button: "FILTER"
