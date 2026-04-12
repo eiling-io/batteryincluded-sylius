@@ -3,21 +3,44 @@
 {% block content %}
     <div class="container mt-4 mb-5">
         <div class="row mt-5">
+            {# 1. Das Macro für die unendlichen Kategorien ganz oben definieren #}
+            {% macro render_category(searchWord, filterLink, facet, catName, catData, parentPath) %}
+                {% import _self as macros %}
+                {% set currentPath = parentPath ? parentPath ~ '+>+' ~ catName : catName %}
+
+                <li class="mb-1">
+                    <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ currentPath|replace({' ': '+'})|url_encode }}"
+                       class="text-decoration-none d-block py-1 {% if catData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}"
+                       style="font-size: 0.9rem;">
+                        <span class="me-1">↳</span> {{ catName }} <span class="small opacity-50">({{ catData.count }})</span>
+                    </a>
+
+                    {% if catData.childs is defined and catData.childs|length > 0 %}
+                        <ul class="list-unstyled ms-3 border-start ps-2">
+                            {% for childName, childData in catData.childs %}
+                                {{ macros.render_category(searchWord, filterLink, facet, childName, childData, currentPath) }}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+            {% endmacro %}
+
+            {# 2. Der eigentliche Filter-Bereich #}
             <div class="col-12 col-lg-3 border-end pe-lg-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="h5 fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">Filter</h4>
                     {% if filter|length > 0 %}
                         <a href="?search={{ searchWord }}" class="btn btn-link btn-sm text-muted p-0 text-decoration-none">
-                            <i class="bi bi-x-circle me-1"></i>Reset
+                            <span class="me-1">✕</span>Reset
                         </a>
                     {% endif %}
                 </div>
 
                 {% if facets is defined and facets|length > 0 %}
-                    <div class="accordion accordion-flush" id="filterAccordion">
+                    <div class="filter-wrapper">
                         {% for facet in facets %}
                             <div class="mb-4 pb-3 border-bottom">
-                                <label class="fw-bold mb-2 d-block text-dark">{{ facet.fieldLabel|default(facet.fieldName) }}</label>
+                                <label class="fw-bold mb-2 d-block text-dark small text-uppercase opacity-75">{{ facet.fieldLabel|default(facet.fieldName) }}</label>
 
                                 {# --- SELECT / ATTRIBUTE FILTER --- #}
                                 {% if facet.type == 'select' %}
@@ -26,78 +49,52 @@
                                             <div class="mb-1">
                                                 <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
                                                    class="d-flex justify-content-between align-items-center text-decoration-none py-1 px-2 rounded filter-item {% if value.checked %}active-filter{% else %}text-muted{% endif %}">
-                                                    <span>{{ value.name }}</span>
-                                                    <span class="badge rounded-pill bg-light text-dark fw-normal">{{ value.count }}</span>
+                                                    <span style="font-size: 0.95rem;">{{ value.name }}</span>
+                                                    <span class="badge rounded-pill bg-light text-dark fw-normal" style="font-size: 0.75rem;">{{ value.count }}</span>
                                                 </a>
                                             </div>
                                         {% endfor %}
                                     </div>
 
-                                    {# --- CATEGORY / TREE FILTER --- #}
+                                    {# --- CATEGORY FILTER (Nutzt jetzt das Macro) --- #}
                                 {% elseif facet.type == 'category' %}
+                                    {% import _self as macros %}
                                     <ul class="list-unstyled ms-1">
-                                        {% for cat, catData in attribute(facet, 'categories') %}
-                                            {% set catPath = cat %}
-                                            <li class="mb-1">
-                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ catPath|replace({' ': '+'})|url_encode }}"
-                                                   class="text-decoration-none d-block py-1 {% if catData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}">
-                                                    <i class="bi bi-chevron-right small me-1"></i>{{ cat }} ({{ catData.count }})
-                                                </a>
-                                                {% if catData.childs is defined and catData.childs|length > 0 %}
-                                                    <ul class="list-unstyled ms-3 border-start ps-2">
-                                                        {% for child, childData in catData.childs %}
-                                                            {% set childPath = catPath ~ '+>+' ~ child %}
-                                                            <li class="mb-1">
-                                                                <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ childPath|replace({' ': '+'})|url_encode }}"
-                                                                   class="text-decoration-none d-block small {% if childData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}">
-                                                                    {{ child }} ({{ childData.count }})
-                                                                </a>
-                                                            </li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                {% endif %}
-                                            </li>
+                                        {% for catName, catData in attribute(facet, 'categories') %}
+                                            {{ macros.render_category(searchWord, filterLink, facet, catName, catData, "") }}
                                         {% endfor %}
                                     </ul>
 
-                                    {# --- PRICE RANGE FILTER --- #}
+                                    {# --- PRICE RANGE --- #}
                                 {% elseif facet.type == 'range' %}
-                                    <div class="mt-2">
-                                        <form method="get">
-                                            <input type="hidden" name="search" value="{{ searchWord }}" />
-                                            {% for filterKey, filterValue in filter %}
-                                                {% if filterKey != facet.fieldName %}
-                                                    {% if filterValue is iterable %}
-                                                        {% for subKey, subValue in filterValue %}<input type="hidden" name="filter[{{ filterKey }}][{{ subKey }}]" value="{{ subValue }}" />{% endfor %}
-                                                    {% else %}
-                                                        <input type="hidden" name="filter[{{ filterKey }}]" value="{{ filterValue }}" />
-                                                    {% endif %}
+                                    <form method="get" class="mt-2">
+                                        <input type="hidden" name="search" value="{{ searchWord }}" />
+                                        {% for filterKey, filterValue in filter %}
+                                            {% if filterKey != facet.fieldName %}
+                                                {% if filterValue is iterable %}
+                                                    {% for subKey, subValue in filterValue %}<input type="hidden" name="filter[{{ filterKey }}][{{ subKey }}]" value="{{ subValue }}" />{% endfor %}
+                                                {% else %}
+                                                    <input type="hidden" name="filter[{{ filterKey }}]" value="{{ filterValue }}" />
                                                 {% endif %}
-                                            {% endfor %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-white border-secondary-subtle">€</span>
+                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" class="form-control border-secondary-subtle" placeholder="Min" value="{{ filter[facet.fieldName]['min']|default(facet.min) }}">
+                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" class="form-control border-secondary-subtle border-start-0" placeholder="Max" value="{{ filter[facet.fieldName]['max']|default(facet.max) }}">
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-outline-dark w-100 mt-1" style="font-size: 0.75rem;">FILTERN</button>
+                                    </form>
 
-                                            <div class="input-group input-group-sm mb-2">
-                                                <span class="input-group-text bg-white">€</span>
-                                                <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]"
-                                                       placeholder="Min" class="form-control"
-                                                       value="{% if filter[facet.fieldName]['min'] is defined %}{{ filter[facet.fieldName]['min'] }}{% else %}{{ facet.min|default('') }}{% endif %}">
-                                                <span class="input-group-text bg-white border-start-0 border-end-0">-</span>
-                                                <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]"
-                                                       placeholder="Max" class="form-control"
-                                                       value="{% if filter[facet.fieldName]['max'] is defined %}{{ filter[facet.fieldName]['max'] }}{% else %}{{ facet.max|default('') }}{% endif %}">
-                                            </div>
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100 mt-1">Anwenden</button>
-                                        </form>
-                                    </div>
-
-                                    {# --- RATING FILTER --- #}
+                                    {# --- RATING FILTER (Unicode-Fix) --- #}
                                 {% elseif facet.type == 'rating' %}
                                     <div class="filter-list">
                                         {% for value in attribute(facet, 'ratings') %}
                                             <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ value.name }}"
                                                class="text-decoration-none d-flex align-items-center py-1 {% if value.checked %}text-sylius-green fw-bold{% else %}text-muted{% endif %}">
-                                                <div class="text-warning me-2">
+                                                <div class="text-warning me-2" style="letter-spacing: 2px; font-size: 1.1rem;">
                                                     {% for i in 1..5 %}
-                                                        <i class="bi bi-star{% if i <= value.name %}-fill{% endif %}"></i>
+                                                        {{ i <= value.name ? '★' : '☆' }}
                                                     {% endfor %}
                                                 </div>
                                                 <span class="small">({{ value.count }})</span>
@@ -109,16 +106,16 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-light border-0 p-0 text-muted small">
-                        <i class="bi bi-info-circle me-1"></i> Keine weiteren Filter verfügbar.
-                    </div>
+                    <div class="text-muted small">Keine Filter verfügbar.</div>
                 {% endif %}
             </div>
 
             <style>
                 .text-sylius-green { color: #22b99a !important; }
-                .filter-item:hover { background-color: #f8f9fa; color: #22b99a !important; }
-                .active-filter { background-color: #e9ecef; color: #22b99a !important; font-weight: bold; }
+                .filter-item { transition: all 0.2s ease; border: 1px solid transparent; }
+                .filter-item:hover { background-color: #f0fdfa; color: #22b99a !important; border-color: #ccf3eb; }
+                .active-filter { background-color: #22b99a; color: #ffffff !important; font-weight: 500; }
+                .active-filter .badge { background-color: rgba(255,255,255,0.2) !important; color: white !important; }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
             </style>
