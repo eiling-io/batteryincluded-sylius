@@ -16,6 +16,7 @@
                 </button>
             </div>
         </form>
+        <div id="search-overlay" class="position-absolute bg-white border rounded shadow" style="display:none; z-index: 1050; width: 100%; top: 45px; left: 0; max-height: 400px; overflow-y: auto;"></div>
     </div>
 </div>
 
@@ -24,4 +25,51 @@
         flex: 0 0 auto !important;
         width: auto !important;
     }
+    #search-overlay {
+        min-height: 60px;
+    }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.querySelector('input[name="criteria[search][value]"]');
+    const overlay = document.getElementById('search-overlay');
+    let overlayActive = false;
+
+    function showOverlay() {
+        overlay.style.display = 'block';
+        overlay.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div></div>';
+        fetch('{{ path('eiling_io_sylius_battery_included_search_ajax') }}?search=' + encodeURIComponent(input.value))
+            .then(r => r.text())
+            .then(html => {
+                overlay.innerHTML = html;
+            });
+    }
+
+    function hideOverlay() {
+        overlay.style.display = 'none';
+    }
+
+    input.addEventListener('focus', function() {
+        showOverlay();
+    });
+
+    input.addEventListener('input', function() {
+        showOverlay();
+    });
+
+    input.addEventListener('blur', function(e) {
+        setTimeout(function() {
+            if (!overlayActive) hideOverlay();
+        }, 150);
+    });
+
+    overlay.addEventListener('mousedown', function() {
+        overlayActive = true;
+    });
+    overlay.addEventListener('mouseup', function() {
+        overlayActive = false;
+        input.focus();
+    });
+});
+</script>

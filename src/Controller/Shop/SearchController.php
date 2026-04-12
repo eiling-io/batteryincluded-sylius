@@ -58,5 +58,14 @@ class SearchController extends AbstractController
             compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages', 'facets')
         );
     }
+
+    public function searchAjax(Request $request): Response
+    {
+        $searchWord = $request->query->get('search');
+
+        return $this->render(
+            '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search_ajax.html.twig'
+        );
+    }
 }
 

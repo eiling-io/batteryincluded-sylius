@@ -3,3 +3,8 @@ eiling_io_sylius_battery_included_search:
    defaults:
      _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController::search
      name: ~
+eiling_io_sylius_battery_included_search_ajax:
+   path: /searchAjax
+   defaults:
+     _controller: EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController::searchAjax
+     name: ~
