@@ -11,18 +11,14 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
-final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExtension implements PrependExtensionInterface
+final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExtension implements
+    PrependExtensionInterface
 {
     use PrependDoctrineMigrationsTrait;
 
     /** @psalm-suppress UnusedVariable */
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $config = $this->processConfiguration(new Configuration(), $configs);
-
-        $container->setParameter('batteryincluded.collection', $config['collection']);
-        $container->setParameter('batteryincluded.api_key', $config['api_key']);
-
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
 
         $loader->load('services.xml');
