@@ -1,0 +1,3 @@
+eiling_io_sylius_battery_included_search:
+  resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+  name_prefix: 'eiling_io_sylius_'
