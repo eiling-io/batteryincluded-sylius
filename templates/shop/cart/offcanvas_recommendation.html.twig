@@ -2,7 +2,7 @@
     {% if recommendations[key] is defined and recommendations[key] is not empty %}
         <div class="mb-4" role="region" aria-labelledby="cart-recommendation-{{ key }}-heading">
             <h5 class="mb-3" id="cart-recommendation-{{ key }}-heading">{{ ('eiling_io_sylius_battery_included.recommendation.' ~ key)|trans }}</h5>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
                 {% for product in recommendations[key] %}
                     <div style="font-size: 0.8rem;">
                         {{ component('sylius_shop:product:card', { product: product, template: hookable_metadata.configuration.product_template|default('@SyliusShop/product/common/card.html.twig')  }) }}

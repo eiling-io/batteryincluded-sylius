@@ -10,10 +10,10 @@ use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent(
-    name: 'EilingIo:CartRecommendation',
-    template: '@EilingIoSyliusBatteryIncludedPlugin/shop/cart/recommendation.html.twig'
+    name: 'EilingIo:OffcanvasCartRecommendation',
+    template: '@EilingIoSyliusBatteryIncludedPlugin/shop/cart/offcanvas_recommendation.html.twig'
 )]
-final class CartRecommendationComponent
+final class OffcanvasCartRecommendationComponent
 {
     public array $recommendations = [];
 
@@ -51,7 +51,7 @@ final class CartRecommendationComponent
                 );
 
                 if (!empty($orderNumbers)) {
-                    $orderNumbers = array_slice($orderNumbers, 0, 6);
+                    $orderNumbers = array_slice($orderNumbers, 0, 3);
                     $products = $this->productRepository->findBy(['code' => $orderNumbers]);
                     $this->recommendations[$key] = $products;
                 }
