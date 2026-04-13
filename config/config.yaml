@@ -10,6 +10,12 @@ sylius_twig_hooks:
         props:
           productDetail: '@=_context.product'
         priority: 250
+    'sylius_shop.base.offcanvas.cart.body':
+      eiling_io_cart_recommendation:
+        component: 'EilingIo:CartRecommendation'
+        props:
+          cartDetail: '@=_context.cart'
+        priority: -10
 
 twig_component:
   defaults:

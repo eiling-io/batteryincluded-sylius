@@ -21,6 +21,9 @@
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\ProductRecommendationComponent" public="true" autowire="true" autoconfigure="true">
             <tag name="twig.component" key="EilingIo:ProductRecommendation" />
         </service>
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\CartRecommendationComponent" public="true" autowire="true" autoconfigure="true">
+            <tag name="twig.component" key="EilingIo:CartRecommendation" />
+        </service>
 
         <!-- SDK Services -->
         <service id="BatteryIncludedSdk\Client\ApiClient" autowire="true" autoconfigure="true" public="true" />
@@ -31,6 +34,7 @@
         <service id="BatteryIncludedSdk\Suggest\SuggestService"  autowire="true" autoconfigure="true" public="true" />
         <service id="BatteryIncludedSdk\Highlights\HighlightsService"  autowire="true" autoconfigure="true" public="true" />
         <service id="BatteryIncludedSdk\Recommendations\RecommendationsService"  autowire="true" autoconfigure="true" public="true" />
+        <service id="BatteryIncludedSdk\CartRecommendations\CartRecommendationsService"  autowire="true" autoconfigure="true" public="true" />
 
     </services>
 </container>

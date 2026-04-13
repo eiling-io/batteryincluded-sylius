@@ -2,7 +2,6 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
-use BatteryIncludedSdk\Recommendations\RecommendationsResponse;
 use BatteryIncludedSdk\Recommendations\RecommendationsService;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
