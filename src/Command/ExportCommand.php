@@ -7,12 +7,14 @@ use BatteryIncludedSdk\Dto\ProductBaseDto;
 use BatteryIncludedSdk\Dto\ProductPropertyDto;
 use BatteryIncludedSdk\Service\SyncService;
 use Liip\ImagineBundle\Service\FilterService;
-use Sylius\Component\Channel\Context\ChannelContextInterface;
+use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -29,17 +31,36 @@ class ExportCommand extends Command
         private SyncService $syncService,
         private UrlGeneratorInterface $router,
         private FilterService $imagineFilter,
-        private ChannelContextInterface $channelContext
+        private ChannelRepositoryInterface $channelRepository
     ) {
         parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addArgument(
+                'channel',
+                InputArgument::REQUIRED,
+                'Channel code to export data for.',
+                null
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        $channelCode = $input->getArgument('channel');
+        /** @var ChannelInterface|null $channel */
+        $channel = $this->channelRepository->findOneByCode($channelCode);
+        if ($channel === null) {
+            $io->error(sprintf('Channel "%s" not found.', $channelCode));
+            return Command::FAILURE;
+        }
+
         $productsRaw = $this->productRepository->findAll();
         $products = [];
-        $channel = $this->channelContext->getChannel();
         /** @var ProductInterface $raw */
         foreach ($productsRaw as $raw) {
             $dto = new ProductBaseDto($raw->getId());
