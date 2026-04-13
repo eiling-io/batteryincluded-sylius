@@ -1,31 +1,28 @@
 {% extends '@SyliusShop/shared/layout/base.html.twig' %}
+{% macro render_category(searchWord, filterLink, facet, catName, catData, parentPath) %}
+    {% import _self as macros %}
+    {% set currentPath = parentPath ? parentPath ~ '+>+' ~ catName : catName %}
+
+    <li class="mb-1">
+        <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ currentPath|replace({' ': '+'})|url_encode }}"
+           class="text-decoration-none d-block py-1 {% if catData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}"
+           style="font-size: 0.9rem;">
+            <span class="me-1">↳</span> {{ catName }} <span class="small opacity-50">({{ catData.count }})</span>
+        </a>
+
+        {% if catData.childs is defined and catData.childs|length > 0 %}
+            <ul class="list-unstyled ms-3 border-start ps-2">
+                {% for childName, childData in catData.childs %}
+                    {{ macros.render_category(searchWord, filterLink, facet, childName, childData, currentPath) }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </li>
+{% endmacro %}
 
 {% block content %}
     <div class="container mt-4 mb-5">
         <div class="row mt-5">
-            {# 1. Das Macro für die unendlichen Kategorien ganz oben definieren #}
-            {% macro render_category(searchWord, filterLink, facet, catName, catData, parentPath) %}
-                {% import _self as macros %}
-                {% set currentPath = parentPath ? parentPath ~ '+>+' ~ catName : catName %}
-
-                <li class="mb-1">
-                    <a href="?search={{ searchWord }}&{{ filterLink }}&filter[{{ facet.fieldName|url_encode }}]={{ currentPath|replace({' ': '+'})|url_encode }}"
-                       class="text-decoration-none d-block py-1 {% if catData.checked %}fw-bold text-sylius-green{% else %}text-muted{% endif %}"
-                       style="font-size: 0.9rem;">
-                        <span class="me-1">↳</span> {{ catName }} <span class="small opacity-50">({{ catData.count }})</span>
-                    </a>
-
-                    {% if catData.childs is defined and catData.childs|length > 0 %}
-                        <ul class="list-unstyled ms-3 border-start ps-2">
-                            {% for childName, childData in catData.childs %}
-                                {{ macros.render_category(searchWord, filterLink, facet, childName, childData, currentPath) }}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
-            {% endmacro %}
-
-            {# 2. Der eigentliche Filter-Bereich #}
             <div class="col-12 col-lg-3 border-end pe-lg-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="h5 fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">{{ 'eiling_io_sylius_battery_included.search.filter'|trans }}</h4>

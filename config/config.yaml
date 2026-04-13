@@ -4,3 +4,14 @@ sylius_twig_hooks:
       eiling_io_searchbox:
         template: '@EilingIoSyliusBatteryIncludedPlugin/shop/header/_searchbox.html.twig'
         priority: 250
+    'sylius_shop.product.show.content.product_listing':
+      eiling_io_product_recommendation:
+        component: 'EilingIo:ProductRecommendation'
+        props:
+          productDetail: '@=_context.product'
+        priority: 250
+
+twig_component:
+  defaults:
+    EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\:
+      name_prefix: 'EilingIo'

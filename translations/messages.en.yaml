@@ -1,4 +1,8 @@
 eiling_io_sylius_battery_included:
+  recommendation:
+    related: "Related products"
+    also: "Also products"
+    together: "Together products"
   searchbox:
     placeholder: "Search for products..."
     button: "Search"
