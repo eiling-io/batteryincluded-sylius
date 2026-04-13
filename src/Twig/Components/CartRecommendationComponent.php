@@ -38,6 +38,10 @@ final class CartRecommendationComponent
             }
         }
 
+        if (count($productIds) === 0) {
+            return;
+        }
+
         $rawResult = $this->cartRecommendationsService->recommendByIdentifiers($productIds)->getRecommendations();
         foreach ($rawResult as $key => $recommendations) {
             if (count($recommendations) > 0) {
