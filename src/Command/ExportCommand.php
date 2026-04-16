@@ -5,7 +5,7 @@ namespace EilingIo\SyliusBatteryIncludedPlugin\Command;
 use BatteryIncludedSdk\Dto\CategoryDto;
 use BatteryIncludedSdk\Dto\ProductBaseDto;
 use BatteryIncludedSdk\Dto\ProductPropertyDto;
-use BatteryIncludedSdk\Service\SyncService;
+use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use Liip\ImagineBundle\Service\FilterService;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -28,7 +28,7 @@ class ExportCommand extends Command
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository,
-        private SyncService $syncService,
+        private readonly ServiceFactory $serviceFactory,
         private UrlGeneratorInterface $router,
         private FilterService $imagineFilter,
         private ChannelRepositoryInterface $channelRepository
@@ -51,89 +51,98 @@ class ExportCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
+        $channels = [];
         $channelCode = $input->getArgument('channel');
         /** @var ChannelInterface|null $channel */
         $channel = $this->channelRepository->findOneByCode($channelCode);
         if ($channel === null) {
-            $io->error(sprintf('Channel "%s" not found.', $channelCode));
-            return Command::FAILURE;
+            foreach ($this->channelRepository->findEnabled() as $availableChannel) {
+                $channels[] = $availableChannel;
+                $io->writeln(sprintf('Available channel: "%s"', $availableChannel->getCode()));
+            }
+            $io->writeln('All channels are exported now!');
+        } else {
+            $channels[] = $channel;
         }
 
-        $productsRaw = $this->productRepository->findAll();
-        $products = [];
-        /** @var ProductInterface $raw */
-        foreach ($productsRaw as $raw) {
-            $dto = new ProductBaseDto($raw->getId());
-            $dto->setName($raw->getName());
-            $dto->setDescription($raw->getDescription());
-            $dto->setOrdernumber($raw->getCode());
-            $image = $raw->getImages()->first();
-            $imageUrl = null;
-            if ($image) {
-                $urlRaw = $this->imagineFilter->getUrlOfFilteredImage(
-                    $image->getPath(),
-                    'sylius_shop_product_thumbnail'
+        foreach ($channels as $channel) {
+            $io->writeln(sprintf('Exporting products to bi: "%s"', $channel->getCode()));
+            $products = [];
+            $productsRaw = $this->productRepository->findAll();
+            /** @var ProductInterface $raw */
+            foreach ($productsRaw as $raw) {
+                $dto = new ProductBaseDto($raw->getId());
+                $dto->setName($raw->getName());
+                $dto->setDescription($raw->getDescription());
+                $dto->setOrdernumber($raw->getCode());
+                $image = $raw->getImages()->first();
+                $imageUrl = null;
+                if ($image) {
+                    $urlRaw = $this->imagineFilter->getUrlOfFilteredImage(
+                        $image->getPath(),
+                        'sylius_shop_product_thumbnail'
+                    );
+                    $parsed = parse_url($urlRaw);
+                    $imagePath = $parsed['path'] ?? $urlRaw;
+                    $baseUrl = $channel->getHostname();
+                    if (!str_starts_with($baseUrl, 'http')) {
+                        $baseUrl = 'https://' . ltrim($baseUrl, '/');
+                    }
+                    $baseUrl = rtrim($baseUrl, '/');
+                    $imageUrl = $baseUrl . $imagePath;
+                }
+                $dto->setImageUrl($imageUrl);
+                $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
+                $dto->setRating($raw->getAverageRating());
+
+                $variant = $raw->getVariants()->first();
+                $price = null;
+                if ($variant !== false) {
+                    $channelPricing = $variant->getChannelPricingForChannel($channel);
+                    if ($channelPricing) {
+                        $price = $channelPricing->getPrice();
+                        $price /= 100;
+                    }
+                }
+                $dto->setPrice($price);
+
+                $manufacturerName = 'Unbekannt';
+                $cap = $raw->getAttributeByCodeAndLocale('cap_brand', 'de_DE');
+                $tshirt = $raw->getAttributeByCodeAndLocale('t_shirt_brand', 'de_DE');
+                $jeans = $raw->getAttributeByCodeAndLocale('jeans_brand', 'de_DE');
+                $dress = $raw->getAttributeByCodeAndLocale('dress_brand', 'de_DE');
+                $manufacturerName = $cap ? $cap->getValue() : $manufacturerName;
+                $manufacturerName = $tshirt ? $tshirt->getValue() : $manufacturerName;
+                $manufacturerName = $jeans ? $jeans->getValue() : $manufacturerName;
+                $manufacturerName = $dress ? $dress->getValue() : $manufacturerName;
+                $dto->setManufacture($manufacturerName);
+                $dtoProperties = new ProductPropertyDto();
+                foreach ($raw->getVariants() as $variant) {
+                    /** @var \Sylius\Component\Product\Model\ProductVariantInterface $variant */
+                    foreach ($variant->getOptionValues() as $optionValue) {
+                        $dtoProperties->addProperty($optionValue->getOptionCode(), $optionValue->getValue());
+                    }
+                }
+                $dto->setProperties($dtoProperties);
+
+                foreach ($raw->getTaxons() as $taxon) {
+                    if (!$taxon->hasChildren()) {
+                        $dto->addCategory($this->getCategoryPath($taxon));
+                    }
+                }
+
+                $dto->setShopUrl(
+                    $this->router->generate(
+                        'sylius_shop_product_show',
+                        ['slug' => $raw->getSlug()],
+                        UrlGeneratorInterface::ABSOLUTE_URL
+                    )
                 );
-                $parsed = parse_url($urlRaw);
-                $imagePath = $parsed['path'] ?? $urlRaw;
-                $baseUrl = $channel->getHostname();
-                if (!str_starts_with($baseUrl, 'http')) {
-                    $baseUrl = 'https://' . ltrim($baseUrl, '/');
-                }
-                $baseUrl = rtrim($baseUrl, '/');
-                $imageUrl = $baseUrl . $imagePath;
-            }
-            $dto->setImageUrl($imageUrl);
-            $dto->setInstock($raw->getVariants()->first()->getOnHand() - $raw->getVariants()->first()->getOnHold());
-            $dto->setRating($raw->getAverageRating());
-
-            $variant = $raw->getVariants()->first();
-            $price = null;
-            if ($variant !== false) {
-                $channelPricing = $variant->getChannelPricingForChannel($channel);
-                if ($channelPricing) {
-                    $price = $channelPricing->getPrice();
-                    $price /= 100;
-                }
-            }
-            $dto->setPrice($price);
-
-            $manufacturerName = 'Unbekannt';
-            $cap = $raw->getAttributeByCodeAndLocale('cap_brand', 'de_DE');
-            $tshirt = $raw->getAttributeByCodeAndLocale('t_shirt_brand', 'de_DE');
-            $jeans = $raw->getAttributeByCodeAndLocale('jeans_brand', 'de_DE');
-            $dress = $raw->getAttributeByCodeAndLocale('dress_brand', 'de_DE');
-            $manufacturerName = $cap ? $cap->getValue() : $manufacturerName;
-            $manufacturerName = $tshirt ? $tshirt->getValue() : $manufacturerName;
-            $manufacturerName = $jeans ? $jeans->getValue() : $manufacturerName;
-            $manufacturerName = $dress ? $dress->getValue() : $manufacturerName;
-            $dto->setManufacture($manufacturerName);
-            $dtoProperties = new ProductPropertyDto();
-            foreach ($raw->getVariants() as $variant) {
-                /** @var \Sylius\Component\Product\Model\ProductVariantInterface $variant */
-                foreach ($variant->getOptionValues() as $optionValue) {
-                    $dtoProperties->addProperty($optionValue->getOptionCode(), $optionValue->getValue());
-                }
-            }
-            $dto->setProperties($dtoProperties);
-
-            foreach ($raw->getTaxons() as $taxon) {
-                if (!$taxon->hasChildren()) {
-                    $dto->addCategory($this->getCategoryPath($taxon));
-                }
+                $products[] = $dto;
             }
 
-            $dto->setShopUrl(
-                $this->router->generate(
-                    'sylius_shop_product_show',
-                    ['slug' => $raw->getSlug()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                )
-            );
-            $products[] = $dto;
+            $this->serviceFactory->getSyncService($channel->getCode())->syncFullElements(...$products);
         }
-
-        $this->syncService->syncFullElements(...$products);
 
         $io->success('Export erfolgreich durchgeführt!');
         return Command::SUCCESS;
@@ -147,7 +156,7 @@ class ExportCommand extends Command
 
         while ($current !== null) {
             $parts[] = $current->getName();
-            $current = $current->getParent();
+            $current = $current->getParent()->isRoot() ? null : $current->getParent();
         }
         foreach (array_reverse($parts) as $part) {
             $dto->addCategoryNode($part);

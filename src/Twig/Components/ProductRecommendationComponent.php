@@ -3,6 +3,7 @@
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
 use BatteryIncludedSdk\Recommendations\RecommendationsService;
+use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
@@ -18,7 +19,7 @@ final class ProductRecommendationComponent
     public array $recommendations = [];
 
     public function __construct(
-        private readonly RecommendationsService $recommendationsService,
+        private readonly ServiceFactory $serviceFactory,
         private readonly ProductRepositoryInterface $productRepository
     ) {
     }
@@ -26,7 +27,7 @@ final class ProductRecommendationComponent
     public function mount(ProductInterface|null $productDetail = null): void
     {
         if ($productDetail instanceof ProductInterface) {
-            $rawResult = $this->recommendationsService->recommendByIdentifier($productDetail->getId())->getRecommendations();
+            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier($productDetail->getId())->getRecommendations();
             foreach ($rawResult as $key => $recommendations) {
                 if (count($recommendations) > 0) {
                     $orderNumbers = array_values(

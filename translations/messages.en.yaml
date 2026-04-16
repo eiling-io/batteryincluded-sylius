@@ -12,8 +12,21 @@ eiling_io_sylius_battery_included:
     no_filters: "No filters available."
     results_for: "Search results for '%searchWord%'"
     no_products: "No products found."
-    filter_button: "FILTER"
+    filter_button: "Apply"
     natural_language: "Search in natural language"
     suggestions: "Suggestions"
     products: "Products"
     no_results: "No results found."
+  filter:
+    price_min: "Min"
+    price_max: "Max"
+  sort:
+    label: "Sort by"
+    relevance: "Relevance"
+    price_asc: "Price: low to high"
+    price_desc: "Price: high to low"
+    name_asc: "Name: A–Z"
+    name_desc: "Name: Z–A"
+  pagination:
+    previous: "Previous"
+    next: "Next"

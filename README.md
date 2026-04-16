@@ -1,131 +1,69 @@
-<p align="center">
-    <a href="https://sylius.com" target="_blank">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://media.sylius.com/sylius-logo-800-dark.png">
-          <source media="(prefers-color-scheme: light)" srcset="https://media.sylius.com/sylius-logo-800.png">
-          <img alt="Sylius Logo." src="https://media.sylius.com/sylius-logo-800.png">
-        </picture>
-    </a>
-</p>
-
-<h1 align="center">Plugin Skeleton</h1>
-
-<p align="center">Skeleton for starting Sylius plugins.</p>
-https://github.com/Sylius/PluginSkeleton
-
+# Sylius BatteryIncluded Integration
 
 ## Documentation
 
-For a comprehensive guide on Sylius Plugins development please go to Sylius documentation,
-there you will find the <a href="https://docs.sylius.com/plugins-development-guide/how-to-create-a-plugin-for-sylius">Plugin Development Guide</a> - it's a great place to start.
 
-For more information about the **Test Application** included in the skeleton, please refer to the [Sylius documentation](https://docs.sylius.com/plugins-development-guide/test-application).
+## Requirements:
+* PHP 8.2 or higher
+* Sylius 2.0 or higher
 
-## Quickstart Installation
+## Installation
 
-Run `composer create-project sylius/plugin-skeleton ProjectName`.
+1. Run
+```bash 
+composer require eiling-io/sylius-battery-included-plugin
+```
 
-### Traditional
+2. add the env variables in .env file:
+```dotenv
+{$channelCode}_BATTERYINCLUDED_BASE_URL=""
+{$channelCode}_BATTERYINCLUDED_COLLECTION=""
+{$channelCode}_BATTERYINCLUDED_API_KEY=""
 
-1. From the plugin skeleton root directory, run the following commands:
+BATTERYINCLUDED_BASE_URL=""
+BATTERYINCLUDED_COLLECTION=""
+BATTERYINCLUDED_API_KEY=""
+```
 
-    ```bash
-    (cd vendor/sylius/test-application && yarn install)
-    (cd vendor/sylius/test-application && yarn build)
-    vendor/bin/console assets:install
-   
-    vendor/bin/console doctrine:database:create
-    vendor/bin/console doctrine:migrations:migrate -n
-    # Optionally load data fixtures
-    vendor/bin/console sylius:fixtures:load -n
-    ```
+3. enable the plugin in `config/bundles.php`:
 
-To be able to set up a plugin's database, remember to configure your database credentials in `tests/TestApplication/.env` and `tests/TestApplication/.env.test`.
+```php
+<?php
 
-2. Run your local server:
+return [
+    // ...
+    EilingIo\SyliusBatteryIncludedPlugin\EilingIoSyliusBatteryIncludedPlugin::class => ['all' => true],
+];
+```
 
-      ```bash
-      symfony server:ca:install
-      symfony server:start -d
-      ```
+4. Import config in `config/packages/_sylius.yaml`:
+```yaml
+# 
+imports:
+    # ...
 
-3. Open your browser and navigate to `https://localhost:8000`.
-
-### Docker
-
-1. Execute `make init` to initialize the container and install the dependencies.
-
-2. Execute `make database-init` to create the database and run migrations.
-
-3. (Optional) Execute `make load-fixtures` to load the fixtures.
-
-4. Your app is available at `http://localhost`.
-
-## Usage
-
-### Running plugin tests
-
-  - PHPUnit
-
-    ```bash
-    vendor/bin/phpunit
-    ```
-
-  - Behat (non-JS scenarios)
-
-    ```bash
-    vendor/bin/behat --strict --tags="~@javascript&&~@mink:chromedriver"
-    ```
-
-  - Behat (JS scenarios)
- 
-    1. [Install Symfony CLI command](https://symfony.com/download).
- 
-    2. Start Headless Chrome:
+  - { resource: "@EilingIoSyliusBatteryIncludedPlugin/config/config.yaml" }
     
-      ```bash
-      google-chrome-stable --enable-automation --disable-background-networking --no-default-browser-check --no-first-run --disable-popup-blocking --disable-default-apps --allow-insecure-localhost --disable-translate --disable-extensions --no-sandbox --enable-features=Metal --headless --remote-debugging-port=9222 --window-size=2880,1800 --proxy-server='direct://' --proxy-bypass-list='*' http://127.0.0.1
-      ```
-    
-    3. Install SSL certificates (only once needed) and run test application's webserver on `127.0.0.1:8080`:
-    
-      ```bash
-      symfony server:ca:install
-      APP_ENV=test symfony server:start --port=8080 --daemon
-      ```
-    
-    4. Run Behat:
-    
-      ```bash
-      vendor/bin/behat --strict --tags="@javascript,@mink:chromedriver"
-      ```
-    
-  - Static Analysis
-      
-    - PHPStan
-    
-      ```bash
-      vendor/bin/phpstan analyse -c phpstan.neon -l max src/  
-      ```
+    # ...
+```
 
-  - Coding Standard
-  
-    ```bash
-    vendor/bin/ecs check
-    ```
+5. Import routing `config/routes/eiling_io_batteryincluded.yaml`:
+```yaml
+eiling_io_sylius_battery_included_plugin:
+  resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+  prefix: /
+```
 
-### Opening Sylius with your plugin
+6. Import assets in `assets/shop/assets.yaml`:
+```yaml
+...
+import '@vendor/eiling-io/sylius-battery-included-plugin/assets/shop/entrypoint.js';
+import '@vendor/eiling-io/sylius-battery-included-plugin/assets/shop/styles.css';
+```
 
-- Using `test` environment:
+### Contributing
 
-    ```bash
-    APP_ENV=test vendor/bin/console sylius:fixtures:load -n
-    APP_ENV=test symfony server:start -d
-    ```
-    
-- Using `dev` environment:
+1. `ddev start`
+2. `ddev init`
+3. Open your browser and navigate to `https://syliusbatteryincludedplugin.ddev.site/`.
 
-    ```bash
-    vendor/bin/console sylius:fixtures:load -n
-    symfony server:start -d
-    ```

@@ -1,0 +1,31 @@
+{% if products|length > 0 %}
+    <div class="products-grid">
+        {% for product in products %}
+            {{ component('sylius_shop:product:card', { product: product, template: '@SyliusShop/product/common/card.html.twig' }) }}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-muted text-center py-5">
+        {{ 'eiling_io_sylius_battery_included.search.no_products'|trans }}
+    </div>
+{% endif %}
+
+{% if maxPages > 1 %}
+    <ul class="pagination justify-content-center mt-4">
+        <li class="page-item{% if currentPage == 1 %} disabled{% endif %}">
+            <a class="page-link" href="?page={{ currentPage - 1 }}">Previous</a>
+        </li>
+        {% for page in 1..maxPages %}
+            <li class="page-item{% if page == currentPage %} active{% endif %}">
+                {% if page == currentPage %}
+                    <span class="page-link">{{ page }}</span>
+                {% else %}
+                    <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+        <li class="page-item{% if currentPage == maxPages %} disabled{% endif %}">
+            <a class="page-link" href="?page={{ currentPage + 1 }}">Next</a>
+        </li>
+    </ul>
+{% endif %}

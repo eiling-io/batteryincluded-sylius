@@ -1,0 +1,26 @@
+{% set sortOptions = {
+    '': 'eiling_io_sylius_battery_included.sort.relevance',
+    '_PRODUCT.price:asc': 'eiling_io_sylius_battery_included.sort.price_asc',
+    '_PRODUCT.price:desc': 'eiling_io_sylius_battery_included.sort.price_desc',
+    '_PRODUCT.name:asc': 'eiling_io_sylius_battery_included.sort.name_asc',
+    '_PRODUCT.name:desc': 'eiling_io_sylius_battery_included.sort.name_desc'
+} %}
+
+<div class="d-flex justify-content-end align-items-center mb-3 gap-2">
+    <label class="small text-muted mb-0">{{ 'eiling_io_sylius_battery_included.sort.label'|trans }}:</label>
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            {{ (sortOptions[sort]|default('eiling_io_sylius_battery_included.sort.relevance'))|trans }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            {% for value, label in sortOptions %}
+                <li>
+                    <a class="dropdown-item {% if sort == value %}active{% endif %}"
+                       href="?{{ filterLink }}{% if searchWord is defined %}&search={{ searchWord }}{% endif %}&page=1{% if value != '' %}&sort={{ value|url_encode }}{% endif %}">
+                        {{ label|trans }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

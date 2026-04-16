@@ -10,34 +10,42 @@
     </imports>
 
     <services>
-        <defaults autowire="true" autoconfigure="true">
-            <bind key="$baseUrl">%env(BATTERYINCLUDED_BASE_URL)%</bind>
-            <bind key="$collection">%env(BATTERYINCLUDED_COLLECTION)%</bind>
-            <bind key="$apiKey">%env(BATTERYINCLUDED_API_KEY)%</bind>
-        </defaults>
+        <defaults autowire="true" autoconfigure="true" />
 
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Command\ExportCommand" autowire="true" autoconfigure="true" public="true" />
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController" public="true" autowire="true" autoconfigure="true"/>
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\ProductRecommendationComponent" public="true" autowire="true" autoconfigure="true">
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Command\ExportCommand"  public="true" />
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\SearchController" public="true" />
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop\TaxonController" public="true" />
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\EventListener\ProductIndexControllerListener" >
+            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" />
+        </service>
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\ProductRecommendationComponent" public="true" >
             <tag name="twig.component" key="EilingIo:ProductRecommendation" />
         </service>
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\CartRecommendationComponent" public="true" autowire="true" autoconfigure="true">
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\CartRecommendationComponent" public="true" >
             <tag name="twig.component" key="EilingIo:CartRecommendation" />
         </service>
-        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\OffcanvasCartRecommendationComponent" public="true" autowire="true" autoconfigure="true">
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\OffcanvasCartRecommendationComponent" public="true" >
             <tag name="twig.component" key="EilingIo:OffcanvasCartRecommendation" />
         </service>
 
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Factory\ApiClientFactory"  public="true">
+            <argument key="$defaultBaseUrl">%env(BATTERYINCLUDED_BASE_URL)%</argument>
+            <argument key="$defaultCollection">%env(BATTERYINCLUDED_COLLECTION)%</argument>
+            <argument key="$defaultApiKey">%env(BATTERYINCLUDED_API_KEY)%</argument>
+        </service>
+
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory"  public="true" />
+
         <!-- SDK Services -->
-        <service id="BatteryIncludedSdk\Client\ApiClient" autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Client\CurlHttpClient" autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Client\HttpClientInterface" alias="BatteryIncludedSdk\Client\CurlHttpClient"  />
-        <service id="BatteryIncludedSdk\Service\SyncService"  autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Shop\BrowseService"  autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Suggest\SuggestService"  autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Highlights\HighlightsService"  autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\Recommendations\RecommendationsService"  autowire="true" autoconfigure="true" public="true" />
-        <service id="BatteryIncludedSdk\CartRecommendations\CartRecommendationsService"  autowire="true" autoconfigure="true" public="true" />
+        <service id="BatteryIncludedSdk\Client\ApiClient" public="true">
+            <factory service="EilingIo\SyliusBatteryIncludedPlugin\Factory\ApiClientFactory" method="create"/>
+        </service>
+        <service id="BatteryIncludedSdk\Service\SyncService"   public="true" />
+        <service id="BatteryIncludedSdk\Shop\BrowseService"   public="true" />
+        <service id="BatteryIncludedSdk\Suggest\SuggestService"   public="true" />
+        <service id="BatteryIncludedSdk\Highlights\HighlightsService"   public="true" />
+        <service id="BatteryIncludedSdk\Recommendations\RecommendationsService"   public="true" />
+        <service id="BatteryIncludedSdk\CartRecommendations\CartRecommendationsService"   public="true" />
 
     </services>
 </container>

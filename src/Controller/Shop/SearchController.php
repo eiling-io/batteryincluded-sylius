@@ -2,26 +2,13 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
-use BatteryIncludedSdk\Highlights\HighlightsService;
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
-use BatteryIncludedSdk\Shop\BrowseService;
 use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
-use BatteryIncludedSdk\Suggest\SuggestService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 
-class SearchController extends AbstractController
+class SearchController extends BatteryIncludedBaseController
 {
-    public function __construct(
-        private readonly BrowseService $browseService,
-        private readonly SuggestService $suggestService,
-        private readonly HighlightsService $highlightsService,
-        private readonly ProductRepositoryInterface $productRepository
-    ) {
-    }
-
     public function search(Request $request): Response
     {
         $searchWord = $request->query->get('search');
@@ -32,6 +19,7 @@ class SearchController extends AbstractController
         $searchStruct->setPerPage($perPage);
         $searchStruct->setPage($currentPage);
         $filter = $_GET['filter'] ?? [];
+        $sort = $request->query->get('sort', '');
         $filterLink = urldecode(http_build_query(compact('filter')));
 
         foreach ($filter as $key => $value) {
@@ -42,28 +30,15 @@ class SearchController extends AbstractController
             }
         }
 
-        $result = $this->browseService->browse($searchStruct);
-        $facets = $result->getFacets();
-        $maxHits = $result->getFound();
-        $maxPages = $result->getPages();
-
-        $orderNumbers = array_values(
-            array_filter(
-                array_map(
-                    static fn($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
-                    $result->getHits()
-                )
-            )
-        );
-
-        $products = [];
-        if (!empty($orderNumbers)) {
-            $products = $this->productRepository->findBy(['code' => $orderNumbers]);
+        if ($sort !== '') {
+            $searchStruct->setSort($sort);
         }
+
+        extract($this->getResultBySearchStruct($searchStruct), EXTR_SKIP);
 
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search.html.twig',
-            compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages', 'facets', 'filter', 'filterLink')
+            compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages', 'facets', 'filter', 'filterLink', 'sort')
         );
     }
 
@@ -73,7 +48,7 @@ class SearchController extends AbstractController
         $searchStruct = new SuggestSearchStruct();
         $searchStruct->setQuery($searchWord);
 
-        $result = $this->suggestService->suggestWithFilter($searchStruct);
+        $result = $this->serviceFactory->getSuggestService()->suggestWithFilter($searchStruct);
 
         $orderNumbers = array_values(
             array_filter(
@@ -86,14 +61,17 @@ class SearchController extends AbstractController
 
         $products = [];
         if (!empty($orderNumbers)) {
-            $products = $this->productRepository->findBy(['code' => $orderNumbers]);
+            $unsorted = $this->productRepository->findBy(['code' => $orderNumbers]);
+            $position = array_flip($orderNumbers);
+            usort($unsorted, static fn($a, $b) => $position[$a->getCode()] <=> $position[$b->getCode()]);
+            $products = $unsorted;
         }
 
         $queryCompletions = $result->getQueryCompletions();
 
         $highlights = [];
         if (strlen($searchWord) === 0) {
-            $highlights = $this->highlightsService->getHighlights()->getAll();
+            $highlights = $this->serviceFactory->getHighlightsService()->getHighlights()->getAll();
         }
 
         return $this->render(

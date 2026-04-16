@@ -3,6 +3,7 @@
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
 use BatteryIncludedSdk\CartRecommendations\CartRecommendationsService;
+use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
@@ -18,7 +19,7 @@ final class CartRecommendationComponent
     public array $recommendations = [];
 
     public function __construct(
-        private readonly CartRecommendationsService $cartRecommendationsService,
+        private readonly ServiceFactory $serviceFactory,
         private readonly ProductRepositoryInterface $productRepository,
     ) {
     }
@@ -42,7 +43,7 @@ final class CartRecommendationComponent
             return;
         }
 
-        $rawResult = $this->cartRecommendationsService->recommendByIdentifiers($productIds)->getRecommendations();
+        $rawResult = $this->serviceFactory->getCartRecommendationsService()->recommendByIdentifiers($productIds)->getRecommendations();
         foreach ($rawResult as $key => $recommendations) {
             if (count($recommendations) > 0) {
                 $orderNumbers = array_values(
