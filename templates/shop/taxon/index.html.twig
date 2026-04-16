@@ -73,8 +73,8 @@
                                         {% endfor %}
                                         <div class="input-group input-group-sm mb-2">
                                             <span class="input-group-text bg-white border-secondary-subtle">€</span>
-                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" class="form-control border-secondary-subtle" placeholder="{{ 'eiling_io_sylius_battery_included.filter.price_min'|trans }}" value="{{ filter[facet.fieldName]['min']|default(facet.min) }}">
-                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" class="form-control border-secondary-subtle border-start-0" placeholder="{{ 'eiling_io_sylius_battery_included.filter.price_max'|trans }}" value="{{ filter[facet.fieldName]['max']|default(facet.max) }}">
+                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][min]" class="form-control border-secondary-subtle" placeholder="{{ 'eiling_io_sylius_battery_included.filter.price_min'|trans }}" value="{{ filter[facet.fieldName]['min']|default(facet.min|round(0, 'floor')) }}">
+                                            <input type="number" name="filter[{{ facet.fieldName|url_encode }}][max]" class="form-control border-secondary-subtle border-start-0" placeholder="{{ 'eiling_io_sylius_battery_included.filter.price_max'|trans }}" value="{{ filter[facet.fieldName]['max']|default(facet.max|round(0, 'ceil')) }}">
                                         </div>
                                         <button type="submit" class="btn btn-sm btn-outline-dark w-100 mt-1" style="font-size: 0.75rem;">
                                             {{ 'eiling_io_sylius_battery_included.search.filter_button'|trans }}
