@@ -35,6 +35,13 @@ sylius_twig_hooks:
         enabled: false
       clear:
         enabled: false
+    'sylius_shop.error404.error':
+      layout:
+        template: '@SyliusShop/shared/error/layout.html.twig'
+        priority: 0
+      eiling_io_error404_products:
+        component: 'EilingIo:Error404'
+        priority: -10
 
 twig_component:
   defaults:

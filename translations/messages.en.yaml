@@ -32,3 +32,5 @@ eiling_io_sylius_battery_included:
     next: "Next"
   index:
     products_heading: "You might be interested in"
+  error404:
+    products_heading: "You might be interested in"
