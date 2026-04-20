@@ -30,3 +30,5 @@ eiling_io_sylius_battery_included:
   pagination:
     previous: "Previous"
     next: "Next"
+  index:
+    products_heading: "You might be interested in"

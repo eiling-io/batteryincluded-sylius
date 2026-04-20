@@ -2,8 +2,6 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
-use BatteryIncludedSdk\CartRecommendations\CartRecommendationsService;
-use BatteryIncludedSdk\Service\SyncService;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;

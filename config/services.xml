@@ -21,6 +21,9 @@
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\ProductRecommendationComponent" public="true" >
             <tag name="twig.component" key="EilingIo:ProductRecommendation" />
         </service>
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\PresetSliderComponent" public="true" >
+            <tag name="twig.component" key="EilingIo:PresetSlider" />
+        </service>
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\CartRecommendationComponent" public="true" >
             <tag name="twig.component" key="EilingIo:CartRecommendation" />
         </service>

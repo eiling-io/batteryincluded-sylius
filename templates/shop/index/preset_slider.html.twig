@@ -1,0 +1,10 @@
+{% if presetSliderProducts is not empty %}
+    <div class="container mb-6" role="region" aria-labelledby="index-products-heading">
+        <h2 class="mb-5 text-center" id="index-products-heading">{{ 'eiling_io_sylius_battery_included.index.products_heading'|trans }}</h2>
+        <div class="products-grid">
+            {% for product in presetSliderProducts %}
+                <div>{{ component('sylius_shop:product:card', { product: product, template: hookable_metadata.configuration.product_template|default('@SyliusShop/product/common/card.html.twig') }) }}</div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

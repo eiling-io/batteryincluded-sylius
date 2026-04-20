@@ -16,6 +16,10 @@ sylius_twig_hooks:
         props:
           cartDetail: '@=_context.cart'
         priority: -10
+    'sylius_shop.homepage.index':
+      eiling_io_preset_slider:
+        component: 'EilingIo:PresetSlider'
+        priority: 150
     'sylius_shop.cart.index.content':
       eiling_io_cart_recommendation:
         component: 'EilingIo:CartRecommendation'
