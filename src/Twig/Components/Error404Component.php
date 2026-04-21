@@ -15,7 +15,7 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 )]
 final class Error404Component
 {
-    private const PRESET_ID = "0b2fdce1-0809-450c-a522-cef26ce5a283";
+    public const PRESET_ID = "0b2fdce1-0809-450c-a522-cef26ce5a283";
 
     public array $products = [];
 

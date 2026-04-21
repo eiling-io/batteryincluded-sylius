@@ -4,6 +4,7 @@ namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
+use EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\Error404Component;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -35,10 +36,28 @@ class SearchController extends BatteryIncludedBaseController
         }
 
         extract($this->getResultBySearchStruct($searchStruct), EXTR_SKIP);
+        $notFoundSlider = [];
+        if (count($products) === 0) {
+            $notFoundSearch = new BrowseSearchStruct();
+            $notFoundSearch->setPresetId(Error404Component::PRESET_ID);
+            $notFoundSearch = $this->getResultBySearchStruct($notFoundSearch);
+            $notFoundSlider = $notFoundSearch['products'];
+        };
 
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search.html.twig',
-            compact('products', 'searchWord', 'currentPage', 'maxHits', 'maxPages', 'facets', 'filter', 'filterLink', 'sort')
+            compact(
+                'products',
+                'searchWord',
+                'currentPage',
+                'maxHits',
+                'maxPages',
+                'facets',
+                'filter',
+                'filterLink',
+                'sort',
+                'notFoundSlider'
+            )
         );
     }
 
