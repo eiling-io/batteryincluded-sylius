@@ -14,27 +14,48 @@
 composer require eiling-io/sylius-battery-included-plugin
 ```
 
-2. add the env variables in .env file:
-```dotenv
-{$channelCode}_BATTERYINCLUDED_BASE_URL=""
-{$channelCode}_BATTERYINCLUDED_COLLECTION=""
-{$channelCode}_BATTERYINCLUDED_API_KEY=""
+   The plugin uses `batteryincluded/batteryincluded-bundle` in `dev-main`, until it is released the `composer.json` of
+   the shop needs `"minimum-stability": "dev"` and `"prefer-stable": true`.
 
-BATTERYINCLUDED_BASE_URL=""
-BATTERYINCLUDED_COLLECTION=""
-BATTERYINCLUDED_API_KEY=""
-```
-
-3. enable the plugin in `config/bundles.php`:
+2. enable the plugin and the [BatteryIncluded bundle](https://eiling-io.github.io/batteryincluded-bundle/) in `config/bundles.php`:
 
 ```php
 <?php
 
 return [
     // ...
+    Batteryincluded\BatteryincludedBundle\BatteryincludedBundle::class => ['all' => true],
     EilingIo\SyliusBatteryIncludedPlugin\EilingIoSyliusBatteryIncludedPlugin::class => ['all' => true],
 ];
 ```
+
+3. add the credentials of the default collection to the `.env` file:
+```dotenv
+BATTERYINCLUDED_COLLECTION=""
+BATTERYINCLUDED_API_KEY=""
+#BATTERYINCLUDED_BASE_URL="https://api.batteryincluded.io/api/v1/collections/"   # optional, this is the default
+```
+
+   All further settings (cache, logging, http client, ...) are described in the
+   [bundle configuration](https://eiling-io.github.io/batteryincluded-bundle/configuration).
+
+   With more than one channel configure one collection per channel and assign them to the channels:
+
+```yaml
+# config/packages/batteryincluded.yaml
+batteryincluded:
+    collections:
+        ch:
+            collection: '%env(BATTERYINCLUDED_COLLECTION_CH)%'
+            api_key: '%env(BATTERYINCLUDED_API_KEY_CH)%'
+
+eiling_io_sylius_battery_included:
+    channels:              # channel code => collection, channels without collection use "default"
+        FASHION_WEB: default
+        FASHION_CH: ch
+```
+
+   Without `channels` the first enabled channel is exported into the `default` collection.
 
 4. Import config in `config/packages/_sylius.yaml`:
 ```yaml
@@ -60,6 +81,17 @@ eiling_io_sylius_battery_included_plugin:
 import '@vendor/eiling-io/sylius-battery-included-plugin/assets/shop/entrypoint.js';
 import '@vendor/eiling-io/sylius-battery-included-plugin/assets/shop/styles.css';
 ```
+
+7. Export the products, one collection per call:
+```bash
+bin/console bi:export --force           # default collection
+bin/console bi:export -c ch --force     # collection "ch"
+bin/console bi:sync PRODUCT-5           # single products, e.g. after an update
+```
+
+   Only enabled products of the channel are exported. See the
+   [console commands](https://eiling-io.github.io/batteryincluded-bundle/console) of the bundle for `bi:status`,
+   `bi:search` and more.
 
 ### Contributing
 

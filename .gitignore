@@ -3,6 +3,8 @@
 /node_modules/
 /drivers/
 /composer.lock
+/.idea
+/.claude
 
 /etc/build/*
 !/etc/build/.gitignore

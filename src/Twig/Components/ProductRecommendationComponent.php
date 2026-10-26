@@ -27,7 +27,7 @@ final class ProductRecommendationComponent
     public function mount(ProductInterface|null $productDetail = null): void
     {
         if ($productDetail instanceof ProductInterface) {
-            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier($productDetail->getId())->getRecommendations();
+            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier((string) $productDetail->getId())->getRecommendations();
             foreach ($rawResult as $key => $recommendations) {
                 if (count($recommendations) > 0) {
                     $orderNumbers = array_values(

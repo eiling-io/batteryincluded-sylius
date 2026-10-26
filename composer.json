@@ -10,7 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "batteryincluded/batteryincluded-php-sdk": "^0.7.0",
+        "batteryincluded/batteryincluded-bundle": "dev-main",
         "sylius/sylius": "^2.0"
     },
     "require-dev": {
@@ -44,6 +44,8 @@
         "symfony/web-profiler-bundle": "^6.4 || ^7.4",
         "symfony/webpack-encore-bundle": "^2.2"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "config": {
         "sort-packages": true,
         "allow-plugins": {

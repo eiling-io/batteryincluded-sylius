@@ -2,6 +2,10 @@ imports:
     - { resource: "@EilingIoSyliusBatteryIncludedPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
 
+eiling_io_sylius_battery_included:
+    channels:
+        FASHION_WEB: default
+
 twig:
     paths:
         '%kernel.project_dir%/../../../tests/TestApplication/templates': ~
