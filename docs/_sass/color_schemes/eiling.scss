@@ -1,0 +1,31 @@
+// Colour scheme of eiling.io: dark surfaces, cyan accent, Poppins
+
+$color-scheme: dark;
+
+$eiling-cyan: #04b4e0;
+$eiling-cyan-dark: #0390b3;
+$eiling-bg: #222;
+$eiling-surface: #2c2c2c;
+$eiling-surface-lt: #333;
+$eiling-border: #444;
+$eiling-text: #d5d5d5;
+$eiling-muted: #aaa;
+
+$body-font-family: "Poppins", helvetica, sans-serif;
+$body-background-color: $eiling-bg;
+$body-heading-color: #fff;
+$body-text-color: $eiling-text;
+$link-color: $eiling-cyan;
+$nav-child-link-color: $eiling-muted;
+$sidebar-color: $eiling-surface;
+$base-button-color: $eiling-surface-lt;
+$btn-primary-color: $eiling-cyan;
+$code-background-color: #2a2c33;
+$code-linenumber-color: #dee2f7;
+$feedback-color: darken($sidebar-color, 3%);
+$table-background-color: $eiling-surface;
+$search-background-color: $eiling-surface-lt;
+$search-result-preview-color: $eiling-muted;
+$border-color: $eiling-border;
+
+@import "./vendor/OneDarkJekyll/syntax";

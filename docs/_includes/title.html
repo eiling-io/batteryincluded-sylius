@@ -1,0 +1,8 @@
+{% if site.logo %}
+  <span class="site-brand">
+    <img class="site-brand-logo" src="{{ site.logo | relative_url }}" alt="eiling.io">
+    <span class="site-brand-product">BatteryIncluded <span class="accent">Sylius Plugin</span></span>
+  </span>
+{% else %}
+  <span>BatteryIncluded <span class="accent">Sylius Plugin</span></span>
+{% endif %}

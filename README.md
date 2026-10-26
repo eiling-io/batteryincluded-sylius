@@ -2,6 +2,8 @@
 
 ## Documentation
 
+https://sylius.batteryincluded.eiling.io/ – installation, configuration, shop features, export and extension points.
+
 
 ## Requirements:
 * PHP 8.2 or higher
@@ -11,13 +13,13 @@
 
 1. Run
 ```bash 
-composer require eiling-io/sylius-battery-included-plugin
+composer require eiling-io/sylius-battery-included-plugin:dev-main
 ```
 
    The plugin uses `batteryincluded/batteryincluded-bundle` in `dev-main`, until it is released the `composer.json` of
    the shop needs `"minimum-stability": "dev"` and `"prefer-stable": true`.
 
-2. enable the plugin and the [BatteryIncluded bundle](https://eiling-io.github.io/batteryincluded-bundle/) in `config/bundles.php`:
+2. enable the plugin and the [BatteryIncluded bundle](https://bundle.batteryincluded.eiling.io/) in `config/bundles.php`:
 
 ```php
 <?php
@@ -37,7 +39,7 @@ BATTERYINCLUDED_API_KEY=""
 ```
 
    All further settings (cache, logging, http client, ...) are described in the
-   [bundle configuration](https://eiling-io.github.io/batteryincluded-bundle/configuration).
+   [bundle configuration](https://bundle.batteryincluded.eiling.io/configuration).
 
    With more than one channel configure one collection per channel and assign them to the channels:
 
@@ -90,7 +92,7 @@ bin/console bi:sync PRODUCT-5           # single products, e.g. after an update
 ```
 
    Only enabled products of the channel are exported. See the
-   [console commands](https://eiling-io.github.io/batteryincluded-bundle/console) of the bundle for `bi:status`,
+   [console commands](https://bundle.batteryincluded.eiling.io/console) of the bundle for `bi:status`,
    `bi:search` and more.
 
 ### Contributing

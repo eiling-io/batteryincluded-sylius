@@ -1,0 +1,45 @@
+title: BatteryIncluded Sylius Plugin
+description: Search, suggestions, category pages and recommendations of BatteryIncluded in your Sylius 2 shop.
+url: https://sylius.batteryincluded.eiling.io
+baseurl: ""
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+plugins:
+  - jekyll-remote-theme
+
+color_scheme: eiling
+# logo of the sidebar (variant of logo.svg for the dark background), without logo the title is shown as text
+logo: /assets/images/logo-dark.svg
+favicon_ico: /assets/images/favicon.png
+search_enabled: true
+heading_anchors: true
+
+aux_links:
+  GitHub: https://github.com/eiling-io/batteryincluded-sylius
+  Packagist: https://packagist.org/packages/eiling-io/sylius-battery-included-plugin
+  Symfony Bundle: https://bundle.batteryincluded.eiling.io
+  PHP SDK: https://sdk.batteryincluded.eiling.io
+  eiling.io: https://eiling.io
+
+gh_edit_link: true
+gh_edit_link_text: Edit this page on GitHub
+gh_edit_repository: https://github.com/eiling-io/batteryincluded-sylius
+gh_edit_branch: main
+gh_edit_source: docs
+gh_edit_view_mode: edit
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+callouts:
+  note:
+    title: Note
+    color: blue
+  important:
+    title: Important
+    color: yellow
+  warning:
+    title: Warning
+    color: red

@@ -1,0 +1,22 @@
+# BatteryIncluded Sylius Plugin
+
+> Sylius 2 plugin for BatteryIncluded: search page with facets, search-as-you-type suggestions, category pages,
+> product and cart recommendations and preset sliders. Built on the BatteryIncluded Symfony Bundle, which exports the
+> products of every channel into its collection. PHP 8.2+, Sylius 2.2 and 2.3.
+
+Install with `composer require eiling-io/sylius-battery-included-plugin:dev-main`. For a complete integration guide in
+one file read [llms-full.txt](https://sylius.batteryincluded.eiling.io/llms-full.txt).
+
+## Docs
+
+- [Getting started](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/getting-started.md): installation, credentials, configuration, routes, assets, first export
+- [Configuration](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/configuration.md): channels and collections, options of the bundle and the plugin
+- [Shop features](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/shop-features.md): search page and its parameters, suggestions, category pages, recommendations, sliders, translations
+- [Export & sync](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/export.md): exported fields, bi:export, bi:sync, portal configuration
+- [Extending the plugin](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/extending.md): template overrides, Twig hooks, DocumentsEvent, own data providers, ServiceFactory
+
+## Optional
+
+- [Development](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/development.md): ddev setup, tests, static analysis, CI
+- [BatteryIncluded Symfony Bundle](https://bundle.batteryincluded.eiling.io/llms.txt): configuration, export, events, console commands
+- [BatteryIncluded PHP SDK](https://sdk.batteryincluded.eiling.io/llms.txt): DTOs, search structs, responses, portal configuration

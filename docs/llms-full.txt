@@ -1,0 +1,140 @@
+# BatteryIncluded Sylius Plugin – integration guide for AI agents
+
+> Everything needed to add BatteryIncluded search, suggestions, category pages and recommendations to a Sylius 2 shop
+> with `eiling-io/sylius-battery-included-plugin`. Follow the steps in order.
+> Human-readable docs: https://sylius.batteryincluded.eiling.io/
+> The plugin is built on the BatteryIncluded Symfony Bundle, its guide covers configuration, export and events:
+> https://bundle.batteryincluded.eiling.io/llms-full.txt
+
+## 0. Ask the user for
+
+1. The collection name of every channel, always prefixed with `customer.` (e.g. `customer.my-shop`).
+2. The API key of each collection. Store it in `.env.local`, a Symfony secret or the server environment, never in a
+   committed file or the browser.
+3. The channel codes of the shop (admin → Configuration → Channels).
+4. Whether the collections may be fully replaced: `bi:export` deletes all documents that are not exported.
+
+## 1. Install and enable
+
+Plugin and bundle are only available as `dev-main`, the shop needs `"minimum-stability": "dev"` and
+`"prefer-stable": true` in its `composer.json`.
+
+```bash
+composer require eiling-io/sylius-battery-included-plugin:dev-main
+```
+
+```php
+// config/bundles.php, the bundle before the plugin
+Batteryincluded\BatteryincludedBundle\BatteryincludedBundle::class => ['all' => true],
+EilingIo\SyliusBatteryIncludedPlugin\EilingIoSyliusBatteryIncludedPlugin::class => ['all' => true],
+```
+
+```dotenv
+# .env.local
+BATTERYINCLUDED_COLLECTION=customer.my-shop
+BATTERYINCLUDED_API_KEY=...
+```
+
+```yaml
+# config/packages/_sylius.yaml
+imports:
+    - { resource: "@EilingIoSyliusBatteryIncludedPlugin/config/config.yaml" }
+```
+
+```yaml
+# config/routes/eiling_io_batteryincluded.yaml
+eiling_io_sylius_battery_included_plugin:
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+    prefix: /
+```
+
+```js
+// assets/shop/entrypoint.js, then rebuild the assets (yarn build)
+import '@vendor/eiling-io/sylius-battery-included-plugin/assets/shop/entrypoint.js';
+```
+
+Verify: `bin/console bi:status` exits with 0.
+
+## 2. Several channels
+
+Only needed with more than one channel. Each channel gets one collection of the bundle, channels without entry use
+`default`. A collection can only be assigned to one channel.
+
+```yaml
+# config/packages/batteryincluded.yaml
+batteryincluded:
+    collections:
+        ch:
+            collection: '%env(BATTERYINCLUDED_COLLECTION_CH)%'
+            api_key: '%env(BATTERYINCLUDED_API_KEY_CH)%'
+
+eiling_io_sylius_battery_included:
+    channels:
+        FASHION_WEB: default
+        FASHION_CH: ch
+```
+
+Without `channels` the products of the first enabled channel are exported into `default`.
+
+## 3. Export
+
+```bash
+bin/console bi:export --dry-run   # serializes the products, nothing is sent
+bin/console bi:export --force     # default collection
+bin/console bi:export -c ch -f    # every further collection
+bin/console bi:sync PRODUCT-5     # single product, id PRODUCT-<Sylius product id>
+```
+
+Only enabled products assigned to the channel are exported, as documents of type `PRODUCT`:
+`name`, `description`, `ordernumber` (= product code), `price` and `instock` (first variant), `imageUrl`, `shopUrl`,
+`rating`, `categories` (paths of the leaf taxons, `A > B`), `properties` (option values),
+`manufacture` (attributes `cap_brand`, `t_shirt_brand`, `jeans_brand`, `dress_brand` in `de_DE`).
+
+Products are not synced automatically on save. Schedule `bi:export --force` (cron) or call the bundle's
+`DocumentSynchronizer::syncByIds(['PRODUCT-5'], $collection, deleteMissing: true)` from a listener of the Sylius
+product events.
+
+## 4. Portal configuration
+
+In the BatteryIncluded portal (https://sdk.batteryincluded.eiling.io/backend-configuration):
+
+- Filterable: `_PRODUCT.categories`, `_PRODUCT.price` and every field shown as facet
+- Sortable: `_PRODUCT.price`, `_PRODUCT.name`
+- Suggest fields: `_PRODUCT.ordernumber` (hits are matched to Sylius products by the product code)
+- Presets with the IDs `5ec20093-4d66-4ab7-80a3-632835e02c12` (homepage slider) and
+  `0b2fdce1-0809-450c-a522-cef26ce5a283` (404 page, search without hits), or disable these sliders
+
+## 5. What the shop gets
+
+- `/search?search=<q>` search page, parameters `filter[<field>]`, `filter[_PRODUCT.price][min|max]`, `sort`, `page`
+- `/searchAjax?search=<q>` suggestion overlay of the search box in the header
+- Category pages (`sylius_shop_product_index`) filtered by `_PRODUCT.categories`
+- Recommendations (`related`, `also`, `together`) on the product page, in the cart and the offcanvas cart
+- Preset sliders on the homepage and the 404 page
+
+## 6. Customizing
+
+- Templates: override below `templates/bundles/EilingIoSyliusBatteryIncludedPlugin/shop/...`
+- Twig hooks: `eiling_io_searchbox`, `eiling_io_product_recommendation`, `eiling_io_cart_recommendation`,
+  `eiling_io_offcanvas_cart_recommendation`, `eiling_io_preset_slider`, `eiling_io_error404_products`; disable with
+  `enabled: false` in `sylius_twig_hooks.hooks`
+- Translations: domain `messages`, prefix `eiling_io_sylius_battery_included.`
+- Fields: listener of `Batteryincluded\BatteryincludedBundle\Event\DocumentsEvent`. Select the documents by
+  `$document instanceof ProductBaseDto && $document->getType() === 'PRODUCT'`, not by `$event->provider`: single
+  syncs are sent without provider.
+- Own document types: data provider of the bundle implementing `CollectionAwareDataProviderInterface` and
+  `PartialDataProviderInterface`
+- Replace the product export: decorate `eiling_io_sylius_battery_included.product_data_provider.<collection>`
+- SDK services for the current channel: `EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory`
+  (`getBrowseService()`, `getSuggestService()`, `getRecommendationsService()`, …)
+
+## 7. Verification checklist
+
+- [ ] `bin/console bi:status` exits with 0 for every collection
+- [ ] `bin/console bi:export --dry-run` lists `ProductDataProvider` with more than 0 documents
+- [ ] `bin/console bi:export --force` succeeded for every collection
+- [ ] `/search?search=<term>` shows products, the facets and sorting work
+- [ ] Typing into the search box shows the suggestion overlay
+- [ ] A category page shows products of the taxon
+- [ ] The product page shows recommendations
+- [ ] No API key in a committed file
