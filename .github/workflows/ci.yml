@@ -71,7 +71,7 @@ jobs:
               run: composer update --no-interaction --no-progress --prefer-dist
 
             - name: Installed versions
-              run: composer show sylius/sylius batteryincluded/batteryincluded-bundle batteryincluded/batteryincluded-php-sdk | grep -E '^(name|versions)'
+              run: composer show | grep -E '^(sylius/sylius|sylius/test-application|batteryincluded/[^ ]+|symfony/http-kernel) '
 
             - name: Validate composer.json
               run: composer validate --no-check-lock --no-check-publish
