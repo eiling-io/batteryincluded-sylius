@@ -58,7 +58,7 @@ final class TaxonController extends BatteryIncludedBaseController
             $struct->setSort($sort);
         }
 
-        extract($this->getResultBySearchStruct($struct), EXTR_SKIP);
+        ['products' => $products, 'facets' => $facets, 'maxHits' => $maxHits, 'maxPages' => $maxPages] = $this->getResultBySearchStruct($struct);
 
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/taxon/index.html.twig',

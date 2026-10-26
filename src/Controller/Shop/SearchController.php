@@ -35,7 +35,7 @@ class SearchController extends BatteryIncludedBaseController
             $searchStruct->setSort($sort);
         }
 
-        extract($this->getResultBySearchStruct($searchStruct), EXTR_SKIP);
+        ['products' => $products, 'facets' => $facets, 'maxHits' => $maxHits, 'maxPages' => $maxPages] = $this->getResultBySearchStruct($searchStruct);
         $notFoundSlider = [];
         if (count($products) === 0) {
             $notFoundSearch = new BrowseSearchStruct();

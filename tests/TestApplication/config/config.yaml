@@ -21,3 +21,19 @@ doctrine:
                         type: attribute
                         dir: '%kernel.project_dir%/../../../tests/TestApplication/src/Entity'
                         prefix: Tests\EilingIo\SyliusBatteryIncludedPlugin
+
+when@test:
+    # the tests run without frontend build
+    webpack_encore:
+        strict_mode: false
+
+    # the api is mocked, no credentials needed
+    batteryincluded:
+        http_client: eiling_io_sylius_battery_included.test.http_client
+
+    services:
+        eiling_io_sylius_battery_included.test.http_client:
+            class: Symfony\Component\HttpClient\MockHttpClient
+            arguments: ['@Tests\EilingIo\SyliusBatteryIncludedPlugin\Functional\MockApi']
+
+        Tests\EilingIo\SyliusBatteryIncludedPlugin\Functional\MockApi: ~

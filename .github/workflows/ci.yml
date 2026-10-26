@@ -1,0 +1,99 @@
+name: ci
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+    workflow_dispatch: ~
+
+jobs:
+    test:
+        name: sylius ${{ matrix.sylius }}, php ${{ matrix.php }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # lowest and latest php of every supported Sylius minor
+                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.2' }
+                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.4' }
+                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.3' }
+                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.4' }
+
+        env:
+            APP_ENV: test
+            # symfony/flex restricts all symfony/* packages to this version, like extra.symfony.require of composer.json
+            SYMFONY_REQUIRE: '7.4.*'
+            # the host of tests/TestApplication/.env.test is 127.0.0.1
+            DATABASE_URL: mysql://root:root@127.0.0.1:3306/eiling_io_sylius_battery_included_plugin_test?serverVersion=8.0
+
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ROOT_PASSWORD: root
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -proot"
+                    --health-interval=5s
+                    --health-timeout=5s
+                    --health-retries=20
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: intl, gd, exif, fileinfo, pdo_mysql
+                  ini-values: memory_limit=-1, date.timezone=UTC
+                  tools: composer:v2, flex
+                  coverage: none
+
+            - name: Get composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: composer-${{ matrix.php }}-${{ matrix.sylius }}-${{ hashFiles('composer.json') }}
+                  restore-keys: composer-${{ matrix.php }}-${{ matrix.sylius }}-
+
+            - name: Restrict Sylius to ${{ matrix.sylius }}
+              run: |
+                  composer require --no-update --no-interaction "sylius/sylius:${{ matrix.sylius }}"
+                  composer require --no-update --no-interaction --dev "sylius/test-application:${{ matrix.test-application }}"
+
+            - name: Install dependencies
+              run: composer update --no-interaction --no-progress --prefer-dist
+
+            - name: Installed versions
+              run: composer show sylius/sylius batteryincluded/batteryincluded-bundle batteryincluded/batteryincluded-php-sdk | grep -E '^(name|versions)'
+
+            - name: Validate composer.json
+              run: composer validate --no-check-lock --no-check-publish
+
+            - name: Lint container, config and templates
+              run: |
+                  vendor/bin/console lint:container
+                  vendor/bin/console lint:yaml config tests/TestApplication/config --parse-tags
+                  vendor/bin/console lint:twig templates
+
+            - name: Run phpstan
+              run: vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+
+            - name: Run unit tests
+              run: vendor/bin/phpunit --testsuite unit
+
+            # the functional tests render the shop with the Sylius fixtures, the api is mocked
+            - name: Prepare database
+              run: |
+                  vendor/bin/console doctrine:database:create --if-not-exists
+                  vendor/bin/console doctrine:migrations:migrate --no-interaction
+                  vendor/bin/console sylius:fixtures:load --no-interaction
+
+            - name: Run functional tests
+              run: vendor/bin/phpunit --testsuite functional

@@ -99,3 +99,20 @@ bin/console bi:sync PRODUCT-5           # single products, e.g. after an update
 2. `ddev init`
 3. Open your browser and navigate to `https://syliusbatteryincludedplugin.ddev.site/`.
 
+### Tests
+
+The functional tests render the shop with the Sylius fixtures, the BatteryIncluded api is mocked
+(`tests/Functional/MockApi.php`). Prepare the test database once:
+
+```bash
+ddev exec 'export APP_ENV=test DATABASE_URL=mysql://root:root@db/eiling_io_sylius_battery_included_plugin_test; vendor/bin/console doctrine:database:create && vendor/bin/console doctrine:migrations:migrate -n && vendor/bin/console sylius:fixtures:load -n'
+```
+
+```bash
+ddev exec vendor/bin/phpunit --testsuite unit
+ddev exec 'DATABASE_URL=mysql://root:root@db/eiling_io_sylius_battery_included_plugin_test vendor/bin/phpunit'
+ddev exec vendor/bin/phpstan analyse -c phpstan.neon
+```
+
+The GitHub workflow (`.github/workflows/ci.yml`) runs them for Sylius 2.2 and 2.3.
+
