@@ -9,17 +9,19 @@ on:
 
 jobs:
     test:
-        name: sylius ${{ matrix.sylius }}, php ${{ matrix.php }}
+        name: sylius ${{ matrix.sylius }}, php ${{ matrix.php }}${{ !matrix.cms && ', without cms' || '' }}
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
                 include:
-                    # lowest and latest php of every supported Sylius minor
-                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.2' }
-                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.4' }
-                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.3' }
-                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.4' }
+                    # lowest and latest php of every supported Sylius minor, with the optional Sylius CMS plugin
+                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.2', cms: true }
+                    - { sylius: '2.2.*', test-application: '~2.2.0@alpha', php: '8.4', cms: true }
+                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.3', cms: true }
+                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.4', cms: true }
+                    # without the CMS plugin, its pages are neither exported nor searched
+                    - { sylius: '2.3.*', test-application: '~2.3.0@alpha', php: '8.4', cms: false }
 
         env:
             APP_ENV: test
@@ -59,7 +61,7 @@ jobs:
             - uses: actions/cache@v4
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
-                  key: composer-${{ matrix.php }}-${{ matrix.sylius }}-${{ hashFiles('composer.json') }}
+                  key: composer-${{ matrix.php }}-${{ matrix.sylius }}-${{ matrix.cms }}-${{ hashFiles('composer.json') }}
                   restore-keys: composer-${{ matrix.php }}-${{ matrix.sylius }}-
 
             - name: Restrict Sylius to ${{ matrix.sylius }}
@@ -67,11 +69,15 @@ jobs:
                   composer require --no-update --no-interaction "sylius/sylius:${{ matrix.sylius }}"
                   composer require --no-update --no-interaction --dev "sylius/test-application:${{ matrix.test-application }}"
 
+            - name: Remove the Sylius CMS plugin
+              if: ${{ !matrix.cms }}
+              run: composer remove --no-update --no-interaction --dev sylius/cms-plugin
+
             - name: Install dependencies
               run: composer update --no-interaction --no-progress --prefer-dist
 
             - name: Installed versions
-              run: composer show | grep -E '^(sylius/sylius|sylius/test-application|batteryincluded/[^ ]+|symfony/http-kernel) '
+              run: composer show | grep -E '^(sylius/sylius|sylius/test-application|sylius/cms-plugin|batteryincluded/[^ ]+|symfony/http-kernel) '
 
             - name: Validate composer.json
               run: composer validate --no-check-lock --no-check-publish
@@ -82,7 +88,9 @@ jobs:
                   vendor/bin/console lint:yaml config tests/TestApplication/config --parse-tags
                   vendor/bin/console lint:twig templates
 
+            # the CmsPageDataProvider and the CmsPageFinder need the classes of the CMS plugin
             - name: Run phpstan
+              if: ${{ matrix.cms }}
               run: vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 
             - name: Run unit tests
@@ -94,6 +102,10 @@ jobs:
                   vendor/bin/console doctrine:database:create --if-not-exists
                   vendor/bin/console doctrine:migrations:migrate --no-interaction
                   vendor/bin/console sylius:fixtures:load --no-interaction
+
+            - name: Load the CMS pages
+              if: ${{ matrix.cms }}
+              run: vendor/bin/console sylius:fixtures:load batteryincluded_cms --no-interaction
 
             - name: Run functional tests
               run: vendor/bin/phpunit --testsuite functional

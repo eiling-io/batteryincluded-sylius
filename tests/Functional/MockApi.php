@@ -8,7 +8,8 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
  * Response factory of the MockHttpClient of the test environment, see tests/TestApplication/config/config.yaml.
- * Every endpoint answers with the products of $productCodes, every request is recorded.
+ * Every endpoint answers with the products of $productCodes and the content pages of $contentPageCodes, the filter
+ * `type` restricts browse to one of them. Every request is recorded.
  */
 final class MockApi
 {
@@ -18,6 +19,11 @@ final class MockApi
     public static array $productCodes = [];
 
     /**
+     * @var list<string> codes of CMS pages delivered as hits
+     */
+    public static array $contentPageCodes = [];
+
+    /**
      * @var list<array{method: string, url: string}>
      */
     public static array $requests = [];
@@ -25,6 +31,7 @@ final class MockApi
     public static function reset(): void
     {
         self::$productCodes = [];
+        self::$contentPageCodes = [];
         self::$requests = [];
     }
 
@@ -56,10 +63,20 @@ final class MockApi
         self::$requests[] = ['method' => $method, 'url' => $url];
 
         $path = (string) parse_url($url, PHP_URL_PATH);
-        $documents = array_map(
-            static fn (string $code) => ['id' => 'PRODUCT-' . $code, 'type' => 'PRODUCT', '_PRODUCT' => ['ordernumber' => $code]],
-            self::$productCodes,
-        );
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+        $types = (array) ($query['f']['type'] ?? ['PRODUCT', 'CONTENT']);
+
+        $documents = [];
+        if (in_array('PRODUCT', $types, true)) {
+            foreach (self::$productCodes as $code) {
+                $documents[] = ['id' => 'PRODUCT-' . $code, 'type' => 'PRODUCT', '_PRODUCT' => ['ordernumber' => $code]];
+            }
+        }
+        if (in_array('CONTENT', $types, true)) {
+            foreach (self::$contentPageCodes as $code) {
+                $documents[] = ['id' => 'CONTENT-' . $code, 'type' => 'CONTENT', '_CONTENT' => ['code' => $code]];
+            }
+        }
 
         return match (true) {
             str_ends_with($path, '/documents/browse') => self::json([

@@ -1,6 +1,6 @@
 ---
 title: Development
-nav_order: 7
+nav_order: 8
 ---
 
 # Development
@@ -37,8 +37,12 @@ Sylius fixtures, the API is answered by `tests/Functional/MockApi.php`, no crede
 once:
 
 ```bash
-ddev exec 'export APP_ENV=test DATABASE_URL=mysql://root:root@db/eiling_io_sylius_battery_included_plugin_test; vendor/bin/console doctrine:database:create && vendor/bin/console doctrine:migrations:migrate -n && vendor/bin/console sylius:fixtures:load -n'
+ddev exec 'export APP_ENV=test DATABASE_URL=mysql://root:root@db/eiling_io_sylius_battery_included_plugin_test; vendor/bin/console doctrine:database:create && vendor/bin/console doctrine:migrations:migrate -n && vendor/bin/console sylius:fixtures:load -n && vendor/bin/console sylius:fixtures:load batteryincluded_cms -n'
 ```
+
+The test application enables the [Sylius CMS plugin](cms-pages) if it is installed (`require-dev`), the suite
+`batteryincluded_cms` loads a few pages. The tests of the CMS pages are skipped without it. The test environment
+stores its images in `media/image-test`, loading its fixtures does not delete the images of the dev shop.
 
 ```bash
 ddev exec vendor/bin/phpunit --testsuite unit
@@ -57,13 +61,15 @@ ddev exec vendor/bin/console lint:twig templates
 
 `.github/workflows/ci.yml` runs on every push and pull request against `main`:
 
-| Sylius | PHP |
-|---|---|
-| 2.2 | 8.2, 8.4 |
-| 2.3 | 8.3, 8.4 |
+| Sylius | PHP | CMS plugin |
+|---|---|---|
+| 2.2 | 8.2, 8.4 | yes |
+| 2.3 | 8.3, 8.4 | yes |
+| 2.3 | 8.4 | no |
 
 Every job installs the dependencies for its Sylius version, validates `composer.json`, lints container, configuration
-and templates, runs PHPStan, the unit tests, loads the fixtures into MySQL and runs the functional tests. The tests run
+and templates, runs PHPStan (with the CMS plugin), the unit tests, loads the fixtures into MySQL and runs the
+functional tests. The tests run
 on Symfony 7.4 and the latest `dev-main` of the bundle and the SDK.
 
 ## Documentation

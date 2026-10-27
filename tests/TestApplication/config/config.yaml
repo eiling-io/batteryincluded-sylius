@@ -1,6 +1,7 @@
 imports:
     - { resource: "@EilingIoSyliusBatteryIncludedPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
+    - { resource: "cms.php" }
 
 eiling_io_sylius_battery_included:
     channels:
@@ -23,6 +24,10 @@ doctrine:
                         prefix: Tests\EilingIo\SyliusBatteryIncludedPlugin
 
 when@test:
+    # own image directory: loading the fixtures purges it, the images of the dev shop have to stay
+    parameters:
+        sylius_core.images_dir: '%sylius_core.public_dir%/media/image-test'
+
     # the tests run without frontend build
     webpack_encore:
         strict_mode: false

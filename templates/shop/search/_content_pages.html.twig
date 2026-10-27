@@ -1,0 +1,18 @@
+{# @EilingIoSyliusBatteryIncludedPlugin/shop/search/_content_pages.html.twig, pages of the Sylius CMS plugin matching the search #}
+{% if contentPages is defined and contentPages|length > 0 %}
+    <section class="mb-4" aria-labelledby="search-content-pages-heading" data-test-content-pages>
+        <h2 class="h5 fw-bold mb-3" id="search-content-pages-heading">{{ 'eiling_io_sylius_battery_included.search.pages'|trans }}</h2>
+        <div class="row g-3">
+            {% for page in contentPages %}
+                <div class="col-12 col-md-6">
+                    <a href="{{ path('sylius_cms_shop_page_show', {'slug': page.slug}) }}" class="d-block h-100 p-3 border rounded text-decoration-none text-dark">
+                        <span class="fw-semibold d-block">{{ page.title|default(page.name) }}</span>
+                        {% if page.teaserContent is not empty %}
+                            <span class="small text-muted d-block mt-1">{{ page.teaserContent|striptags }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

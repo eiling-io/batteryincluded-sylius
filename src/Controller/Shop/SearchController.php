@@ -4,12 +4,15 @@ namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
+use EilingIo\SyliusBatteryIncludedPlugin\Dto\ContentPageDto;
 use EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\Error404Component;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends BatteryIncludedBaseController
 {
+    private const CONTENT_PAGES_PER_SEARCH = 4;
+
     public function search(Request $request): Response
     {
         $searchWord = $request->query->get('search');
@@ -44,6 +47,9 @@ class SearchController extends BatteryIncludedBaseController
             $notFoundSlider = $notFoundSearch['products'];
         };
 
+        // the matching content pages above the products of the first page
+        $contentPages = $currentPage === 1 ? $this->findContentPages((string) $searchWord) : [];
+
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search.html.twig',
             compact(
@@ -56,7 +62,8 @@ class SearchController extends BatteryIncludedBaseController
                 'filter',
                 'filterLink',
                 'sort',
-                'notFoundSlider'
+                'notFoundSlider',
+                'contentPages'
             )
         );
     }
@@ -86,6 +93,8 @@ class SearchController extends BatteryIncludedBaseController
             $products = $unsorted;
         }
 
+        $contentPages = $this->cmsPageFinder?->findByCodes($this->cmsPageFinder->getCodes($result->getDocuments())) ?? [];
+
         $queryCompletions = $result->getQueryCompletions();
 
         $highlights = [];
@@ -95,8 +104,26 @@ class SearchController extends BatteryIncludedBaseController
 
         return $this->render(
             '@EilingIoSyliusBatteryIncludedPlugin/shop/search/search_ajax.html.twig',
-            compact('products', 'searchWord', 'queryCompletions', 'highlights')
+            compact('products', 'searchWord', 'queryCompletions', 'highlights', 'contentPages')
         );
+    }
+
+    /**
+     * @return list<\Sylius\CmsPlugin\Entity\PageInterface>
+     */
+    private function findContentPages(string $searchWord): array
+    {
+        if ($this->cmsPageFinder === null || $searchWord === '') {
+            return [];
+        }
+
+        $searchStruct = new BrowseSearchStruct();
+        $searchStruct->setQuery($searchWord);
+        $searchStruct->addFilter('type', ContentPageDto::TYPE);
+        $searchStruct->setPerPage(self::CONTENT_PAGES_PER_SEARCH);
+        $result = $this->serviceFactory->getBrowseService()->browse($searchStruct);
+
+        return $this->cmsPageFinder->findByCodes($this->cmsPageFinder->getCodes($result->getRawHits()));
     }
 }
 

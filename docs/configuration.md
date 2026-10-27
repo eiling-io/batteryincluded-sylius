@@ -61,3 +61,4 @@ bin/console config:dump-reference eiling_io_sylius_battery_included
 | Option | Default | Meaning |
 |---|---|---|
 | `channels` | `{}` | Channel code => collection name of the bundle |
+| `cms_pages` | `true` | Exports and searches the pages of the Sylius CMS plugin, only if it is installed, see [CMS pages](cms-pages) |

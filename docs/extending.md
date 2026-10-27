@@ -1,6 +1,6 @@
 ---
 title: Extending the plugin
-nav_order: 6
+nav_order: 7
 ---
 
 # Extending the plugin
@@ -33,6 +33,7 @@ of your shop:
 | `shop/header/_searchbox.html.twig` | Search box and suggestion overlay in the header |
 | `shop/search/search.html.twig` | Search page with facets and pagination |
 | `shop/search/search_ajax.html.twig` | Content of the suggestion overlay |
+| `shop/search/_content_pages.html.twig` | [CMS pages](cms-pages) on the search page |
 | `shop/taxon/index.html.twig`, `shop/taxon/browse.html.twig` | Category page and its product grid |
 | `shop/_includes/_sort_bar.html.twig` | Sorting of search and category pages |
 | `shop/product/recommendation.html.twig` | Recommendations on the product page |
@@ -125,7 +126,9 @@ provider, see below. Fields the shop filters by have to be filterable in the por
 
 ## Own documents
 
-Content pages, blog posts or stores are exported by an own data provider. Implement
+Content pages, blog posts or stores are exported by an own data provider. The [CMS pages](cms-pages) integration of
+the plugin is a complete example: `CmsPageDataProvider` with `ContentPageDto` for the export, `CmsPageFinder` for the
+shop. Implement
 `CollectionAwareDataProviderInterface` of the bundle so the documents go only into the collection of their channel,
 and `PartialDataProviderInterface` for `bi:sync`. The [export documentation](https://bundle.batteryincluded.eiling.io/export#data-providers)
 of the bundle shows a complete provider.

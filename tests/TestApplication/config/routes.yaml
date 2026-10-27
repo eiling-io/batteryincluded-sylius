@@ -3,3 +3,6 @@ eiling_io_sylius_battery_included_admin:
 
 eiling_io_sylius_battery_included_shop:
     resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+
+eiling_io_sylius_battery_included_cms:
+    resource: "routes_cms.php"

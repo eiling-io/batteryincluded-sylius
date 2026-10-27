@@ -25,6 +25,10 @@ final class Configuration implements ConfigurationInterface
                         ->thenInvalid('Every collection can only be assigned to one channel, got %s.')
                     ->end()
                 ->end()
+                ->booleanNode('cms_pages')
+                    ->info('Exports the pages of the Sylius CMS plugin and shows them in the search, only if the CMS plugin is installed and enabled')
+                    ->defaultTrue()
+                ->end()
             ->end();
 
         return $treeBuilder;

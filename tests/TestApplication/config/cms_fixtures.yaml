@@ -1,0 +1,89 @@
+# content pages of the Sylius CMS plugin: bin/console sylius:fixtures:load batteryincluded_cms
+# (the suite "cms" of the CMS plugin conflicts with the taxons of the default suite)
+sylius_fixtures:
+    suites:
+        batteryincluded_cms:
+            listeners:
+                logger: ~
+            fixtures:
+                page:
+                    options:
+                        custom:
+                            shipping:
+                                name: "Shipping"
+                                channels: ["FASHION_WEB"]
+                                translations:
+                                    en_US:
+                                        slug: "shipping"
+                                        meta_title: "Shipping & delivery"
+                                        teaser_content: "Free shipping from $50 within 2 to 4 working days."
+                                content_elements:
+                                    en_US:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Shipping & delivery" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>We ship all t-shirts, jeans, dresses and caps with DHL. Orders placed before 2 pm leave our warehouse on the same day.</p><p>Shipping is free from an order value of $50, below we charge a flat rate of $4.90.</p>"
+                            returns:
+                                name: "Returns"
+                                channels: ["FASHION_WEB"]
+                                translations:
+                                    en_US:
+                                        slug: "returns"
+                                        meta_title: "Returns & exchanges"
+                                        teaser_content: "Return or exchange every item within 30 days."
+                                content_elements:
+                                    en_US:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Returns & exchanges" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>You can return or exchange every item within 30 days of receipt, the return label is in your parcel.</p><p>The refund is made within 5 working days using the original payment method.</p>"
+                            size_guide:
+                                name: "Size guide"
+                                channels: ["FASHION_WEB"]
+                                translations:
+                                    en_US:
+                                        slug: "size-guide"
+                                        meta_title: "Size guide"
+                                        teaser_content: "Find the right size for t-shirts, jeans and dresses."
+                                content_elements:
+                                    en_US:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Size guide" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Our t-shirts and caps are available from XS to XXL, jeans in waist sizes from 28 to 38.</p><p>If you are between two sizes, we recommend the larger one for a relaxed fit.</p>"
+                            care:
+                                name: "Care instructions"
+                                channels: ["FASHION_WEB"]
+                                translations:
+                                    en_US:
+                                        slug: "care-instructions"
+                                        meta_title: "Care instructions"
+                                        teaser_content: "How to wash denim and cotton so it lasts."
+                                content_elements:
+                                    en_US:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Care instructions" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Wash denim inside out in cold water and dry it on low heat to keep its color.</p><p>Cotton t-shirts can be washed at 40 °C, do not tumble dry printed shirts.</p>"
+                            # disabled pages are not exported
+                            internal:
+                                name: "Internal notes"
+                                enabled: false
+                                channels: ["FASHION_WEB"]
+                                translations:
+                                    en_US:
+                                        slug: "internal-notes"
+                                        meta_title: "Internal notes"
+                                        teaser_content: "Not for customers."

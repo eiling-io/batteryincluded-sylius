@@ -8,7 +8,7 @@ nav_order: 1
 
 Brings [BatteryIncluded](https://batteryincluded.ai) into your Sylius 2 shop: a search page with filters and sorting,
 search-as-you-type suggestions in the header, category pages served by BatteryIncluded and product recommendations on
-the product page and in the cart. The plugin is built on the
+the product page and in the cart. With the Sylius CMS plugin its pages are searchable as well. The plugin is built on the
 [BatteryIncluded Symfony Bundle](https://bundle.batteryincluded.eiling.io), which exports your catalog and talks to
 the API.
 
@@ -25,6 +25,7 @@ bin/console bi:export --force
 | [Configuration](configuration) | Channels and collections, all options of the bundle |
 | [Shop features](shop-features) | Search page, suggestions, category pages, recommendations, sliders |
 | [Export & sync](export) | Exported fields, `bi:export`, `bi:sync`, portal configuration |
+| [CMS pages](cms-pages) | Pages of the Sylius CMS plugin in the search and the suggestions, if installed |
 | [Extending the plugin](extending) | Templates, Twig hooks, own fields and documents, services |
 | [Development](development) | ddev, tests, static analysis, CI |
 

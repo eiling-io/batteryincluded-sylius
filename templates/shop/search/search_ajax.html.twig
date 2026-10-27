@@ -61,7 +61,21 @@
             </ul>
         </div>
     {% endif %}
-    {% if (products is not defined or products|length == 0) and (queryCompletions is not defined or queryCompletions|length == 0) %}
+    {% if contentPages is defined and contentPages|length > 0 %}
+        <div class="mb-2" data-test-content-pages>
+            <div class="fw-bold small text-secondary mb-1">{{ 'eiling_io_sylius_battery_included.search.pages'|trans }}</div>
+            <ul class="list-unstyled mb-2">
+                {% for page in contentPages %}
+                    <li class="mb-1">
+                        <a href="{{ path('sylius_cms_shop_page_show', {'slug': page.slug}) }}" class="text-decoration-none text-dark">
+                            {{ page.title|default(page.name) }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    {% if (products is not defined or products|length == 0) and (queryCompletions is not defined or queryCompletions|length == 0) and (contentPages is not defined or contentPages|length == 0) %}
         <div class="text-muted small py-3 text-center">{{ 'eiling_io_sylius_battery_included.search.no_results'|trans }}</div>
     {% endif %}
 </div>

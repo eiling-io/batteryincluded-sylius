@@ -16,6 +16,7 @@ eiling_io_sylius_battery_included:
     natural_language: "Search in natural language"
     suggestions: "Suggestions"
     products: "Products"
+    pages: "Pages"
     no_results: "No results found."
   filter:
     price_min: "Min"

@@ -26,13 +26,15 @@ pagination, 9 products per page.
 | `sort` | `_PRODUCT.price:asc` | Relevance (empty), price or name, ascending or descending |
 | `page` | `2` | Page |
 
-Without hits the page shows the products of the 404 preset (see [Sliders](#sliders)).
+Without hits the page shows the products of the 404 preset (see [Sliders](#sliders)). With the Sylius CMS plugin the
+matching pages are shown above the products, see [CMS pages](cms-pages).
 
 ## Suggestions
 
 The plugin adds a search box to the header (hook `sylius_shop.base.header.content`). While typing, the
 script of the plugin loads `/searchAjax?search=<query>` (route `eiling_io_sylius_battery_included_search_ajax`) and
-shows query completions and products in an overlay. An empty search box shows the highlights of the collection.
+shows query completions, products and, with the Sylius CMS plugin, [pages](cms-pages) in an overlay. An empty search
+box shows the highlights of the collection.
 
 ## Category pages
 

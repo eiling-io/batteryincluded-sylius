@@ -104,6 +104,15 @@ In the BatteryIncluded portal (https://sdk.batteryincluded.eiling.io/backend-con
 - Presets with the IDs `5ec20093-4d66-4ab7-80a3-632835e02c12` (homepage slider) and
   `0b2fdce1-0809-450c-a522-cef26ce5a283` (404 page, search without hits), or disable these sliders
 
+## 4b. Optional: pages of the Sylius CMS plugin
+
+If `Sylius\CmsPlugin\SyliusCmsPlugin` is enabled, its enabled and published pages of the channel are exported as
+`CONTENT-<page id>` (`_CONTENT`: `code`, `title`, `teaser`, `content`, `url`, translations in `_CONTENT_i18n`) and
+shown in the suggestions and above the products of the search page. Disable it with
+`eiling_io_sylius_battery_included.cms_pages: false`. Portal: `type` filterable (the product search filters by
+`type` = `PRODUCT`), `_CONTENT.title`, `_CONTENT.teaser`, `_CONTENT.content` searchable, `_CONTENT.title` and
+`_CONTENT.code` as suggest fields.
+
 ## 5. What the shop gets
 
 - `/search?search=<q>` search page, parameters `filter[<field>]`, `filter[_PRODUCT.price][min|max]`, `sort`, `page`

@@ -33,6 +33,7 @@
         "phpunit/phpunit": "^10.5",
         "sylius-labs/coding-standard": "^4.4",
         "sylius-labs/suite-tags-extension": "~0.2",
+        "sylius/cms-plugin": "^1.1",
         "sylius/sylius-rector": "^3.0",
         "sylius/test-application": "^2.0.0@alpha",
         "symfony/browser-kit": "^6.4 || ^7.4",
@@ -43,6 +44,9 @@
         "symfony/runtime": "^6.4 || ^7.4",
         "symfony/web-profiler-bundle": "^6.4 || ^7.4",
         "symfony/webpack-encore-bundle": "^2.2"
+    },
+    "suggest": {
+        "sylius/cms-plugin": "Exports the CMS pages to BatteryIncluded and shows them in the search and the suggestions"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

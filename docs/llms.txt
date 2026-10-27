@@ -13,6 +13,7 @@ one file read [llms-full.txt](https://sylius.batteryincluded.eiling.io/llms-full
 - [Configuration](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/configuration.md): channels and collections, options of the bundle and the plugin
 - [Shop features](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/shop-features.md): search page and its parameters, suggestions, category pages, recommendations, sliders, translations
 - [Export & sync](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/export.md): exported fields, bi:export, bi:sync, portal configuration
+- [CMS pages](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/cms-pages.md): optional pages of the Sylius CMS plugin in search and suggestions, CONTENT documents, portal fields
 - [Extending the plugin](https://raw.githubusercontent.com/eiling-io/batteryincluded-sylius/main/docs/extending.md): template overrides, Twig hooks, DocumentsEvent, own data providers, ServiceFactory
 
 ## Optional

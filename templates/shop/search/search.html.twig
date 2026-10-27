@@ -109,6 +109,7 @@
 
                 <div class="col-12 col-lg-9">
                     <h1>{{ 'eiling_io_sylius_battery_included.search.results_for'|trans({'%searchWord%': searchWord}) }}</h1>
+                    {{ include('@EilingIoSyliusBatteryIncludedPlugin/shop/search/_content_pages.html.twig') }}
                     {{ include('@EilingIoSyliusBatteryIncludedPlugin/shop/_includes/_sort_bar.html.twig') }}
                     <div class="row flex-column flex-md-row align-items-end justify-content-end gap-2 gap-md-0 mb-5">
                         <div class="products-grid">
@@ -141,6 +142,7 @@
                 <div class="col-12">
                     <h1>{{ 'eiling_io_sylius_battery_included.search.results_for'|trans({'%searchWord%': searchWord}) }}</h1>
                     <p class="text-muted">{{ 'eiling_io_sylius_battery_included.search.no_products'|trans }}</p>
+                    {{ include('@EilingIoSyliusBatteryIncludedPlugin/shop/search/_content_pages.html.twig') }}
                     <h2 class="mb-5 text-center" id="error-404-products-heading">{{ 'eiling_io_sylius_battery_included.error404.products_heading'|trans }}</h2>
                     {% if notFoundSlider is defined and notFoundSlider|length > 0 %}
                         <div class="products-grid mt-4">
