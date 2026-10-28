@@ -4,3 +4,4 @@ parameters:
         - src
         - tests/Unit
         - tests/Functional
+        - tests/TestApplication/src

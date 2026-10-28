@@ -62,9 +62,11 @@ Import the routes of the search page and the suggestions:
 ```yaml
 # config/routes/eiling_io_batteryincluded.yaml
 eiling_io_sylius_battery_included_plugin:
-    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
-    prefix: /
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes.yaml"
 ```
+
+The routes are prefixed with `/{_locale}` like the routes of the Sylius shop, e.g. `/de_DE/search`, the search uses
+the language of the URL.
 
 Add the script of the suggestions and the styles to the shop entrypoint and rebuild the assets:
 

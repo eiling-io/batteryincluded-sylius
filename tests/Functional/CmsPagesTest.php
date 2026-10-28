@@ -33,7 +33,7 @@ final class CmsPagesTest extends WebTestCase
     {
         MockApi::$contentPageCodes = ['returns', 'shipping'];
 
-        $this->client->request('GET', '/search?search=delivery');
+        $this->client->request('GET', '/en_US/search?search=delivery');
 
         self::assertResponseIsSuccessful();
         $pages = $this->client->getCrawler()->filter('[data-test-content-pages] a');
@@ -46,11 +46,26 @@ final class CmsPagesTest extends WebTestCase
         self::assertContains(['CONTENT'], $types);
     }
 
+    public function testGermanSearchShowsTheGermanPages(): void
+    {
+        MockApi::$contentPageCodes = ['returns', 'shipping'];
+
+        $this->client->request('GET', '/de_DE/search?search=versand');
+
+        self::assertResponseIsSuccessful();
+        $pages = $this->client->getCrawler()->filter('[data-test-content-pages] a');
+        self::assertSame(['Rückgabe & Umtausch', 'Versand & Lieferung'], $pages->each(static fn ($link) => trim($link->filter('.fw-semibold')->text())));
+        self::assertSame('/de_DE/pages/rueckgabe', $pages->first()->attr('href'));
+
+        $contentSearch = array_values(array_filter(MockApi::requestedUrls('/documents/browse'), static fn (string $url) => self::filterOf($url, 'type') === ['CONTENT']));
+        self::assertSame('de-de', MockApi::parameter($contentSearch[0], 'v', 'locale'));
+    }
+
     public function testSuggestShowsThePages(): void
     {
         MockApi::$contentPageCodes = ['size_guide'];
 
-        $this->client->request('GET', '/searchAjax?search=size');
+        $this->client->request('GET', '/en_US/searchAjax?search=size');
 
         self::assertResponseIsSuccessful();
         $link = $this->client->getCrawler()->filter('[data-test-content-pages] a');
@@ -63,7 +78,7 @@ final class CmsPagesTest extends WebTestCase
     {
         MockApi::$contentPageCodes = ['internal', 'unknown'];
 
-        $this->client->request('GET', '/searchAjax?search=notes');
+        $this->client->request('GET', '/en_US/searchAjax?search=notes');
 
         self::assertResponseIsSuccessful();
         self::assertCount(0, $this->client->getCrawler()->filter('[data-test-content-pages]'));
@@ -97,6 +112,11 @@ final class CmsPagesTest extends WebTestCase
         self::assertStringContainsString('"title": "Shipping & delivery"', $display);
         self::assertStringContainsString('Orders placed before 2 pm', $display);
         self::assertStringContainsString('/en_US/pages/shipping', $display);
+        // every language of the channel
+        self::assertStringContainsString('"de-de": {', $display);
+        self::assertStringContainsString('"title": "Versand & Lieferung"', $display);
+        self::assertStringContainsString('Bestellungen bis 14 Uhr', $display);
+        self::assertStringContainsString('/de_DE/pages/versand', $display);
         self::assertStringContainsString('No document for: CONTENT-' . $internal->getId(), $display);
     }
 

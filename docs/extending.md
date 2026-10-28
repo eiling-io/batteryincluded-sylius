@@ -34,7 +34,7 @@ of your shop:
 | `shop/search/search.html.twig` | Search page with facets and pagination |
 | `shop/search/search_ajax.html.twig` | Content of the suggestion overlay |
 | `shop/search/_content_pages.html.twig` | [CMS pages](cms-pages) on the search page |
-| `shop/taxon/index.html.twig`, `shop/taxon/browse.html.twig` | Category page and its product grid |
+| `shop/taxon/index.html.twig` | Category page with facets and product grid |
 | `shop/_includes/_sort_bar.html.twig` | Sorting of search and category pages |
 | `shop/product/recommendation.html.twig` | Recommendations on the product page |
 | `shop/cart/recommendation.html.twig`, `shop/cart/offcanvas_recommendation.html.twig` | Recommendations in the cart |

@@ -67,8 +67,8 @@ In addition to the [fields of the products](export#portal-configuration):
 | Setting | Fields |
 |---|---|
 | Filterable | `type`, the product search is filtered by it |
-| Searchable | `_CONTENT.title`, `_CONTENT.teaser`, `_CONTENT.content` |
-| Suggest | `_CONTENT.title` and `_CONTENT.code`, otherwise the suggestions cannot be matched to pages |
+| Searchable | `_CONTENT_i18n.<locale>.title`, `.teaser` and `.content` of every locale |
+| Suggest | `_CONTENT_i18n.<locale>.title` and `_CONTENT.code`, otherwise the suggestions cannot be matched to pages |
 
 {: .important }
 Make `type` filterable before you install the CMS plugin: from then on the product search, the category pages and the

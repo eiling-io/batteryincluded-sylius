@@ -2,7 +2,7 @@ eiling_io_sylius_battery_included_admin:
     resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/admin.yaml"
 
 eiling_io_sylius_battery_included_shop:
-    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes.yaml"
 
 eiling_io_sylius_battery_included_cms:
     resource: "routes_cms.php"

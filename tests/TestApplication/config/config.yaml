@@ -2,6 +2,7 @@ imports:
     - { resource: "@EilingIoSyliusBatteryIncludedPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
     - { resource: "cms.php" }
+    - { resource: "demo_data.php" }
 
 eiling_io_sylius_battery_included:
     channels:

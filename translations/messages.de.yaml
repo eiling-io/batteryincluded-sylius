@@ -1,0 +1,37 @@
+eiling_io_sylius_battery_included:
+  recommendation:
+    related: "Ähnliche Produkte"
+    also: "Kunden kauften auch"
+    together: "Wird oft zusammen gekauft"
+  searchbox:
+    placeholder: "Produkte suchen..."
+    button: "Suchen"
+  search:
+    filter: "Filter"
+    reset: "Zurücksetzen"
+    no_filters: "Keine Filter verfügbar."
+    results_for: "Suchergebnisse für '%searchWord%'"
+    no_products: "Keine Produkte gefunden."
+    filter_button: "Anwenden"
+    natural_language: "In natürlicher Sprache suchen"
+    suggestions: "Vorschläge"
+    products: "Produkte"
+    pages: "Seiten"
+    no_results: "Keine Ergebnisse gefunden."
+  filter:
+    price_min: "Min"
+    price_max: "Max"
+  sort:
+    label: "Sortieren nach"
+    relevance: "Relevanz"
+    price_asc: "Preis: aufsteigend"
+    price_desc: "Preis: absteigend"
+    name_asc: "Name: A–Z"
+    name_desc: "Name: Z–A"
+  pagination:
+    previous: "Zurück"
+    next: "Weiter"
+  index:
+    products_heading: "Das könnte Sie interessieren"
+  error404:
+    products_heading: "Das könnte Sie interessieren"

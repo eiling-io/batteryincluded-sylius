@@ -70,11 +70,10 @@ imports:
     # ...
 ```
 
-5. Import routing `config/routes/eiling_io_batteryincluded.yaml`:
+5. Import routing `config/routes/eiling_io_batteryincluded.yaml`, the routes are prefixed with `/{_locale}`:
 ```yaml
 eiling_io_sylius_battery_included_plugin:
-  resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
-  prefix: /
+  resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes.yaml"
 ```
 
 6. Import assets in `assets/shop/assets.yaml`:

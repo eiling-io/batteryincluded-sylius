@@ -19,6 +19,9 @@ use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Product\Model\ProductOptionValueTranslationInterface;
+use Sylius\Component\Product\Model\ProductTranslationInterface;
+use Sylius\Component\Taxonomy\Model\TaxonTranslationInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -123,8 +126,6 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
     private function createDto(ProductInterface $product, ChannelInterface $channel): ProductBaseDto
     {
         $dto = new ProductBaseDto((string) $product->getId(), self::TYPE);
-        $dto->setName($product->getName());
-        $dto->setDescription($product->getDescription());
         $dto->setOrdernumber($product->getCode());
         $dto->setImageUrl($this->getImageUrl($product, $channel));
         $dto->setRating($product->getAverageRating());
@@ -139,40 +140,102 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
             }
         }
 
-        $manufacturerName = 'Unbekannt';
-        $cap = $product->getAttributeByCodeAndLocale('cap_brand', 'de_DE');
-        $tshirt = $product->getAttributeByCodeAndLocale('t_shirt_brand', 'de_DE');
-        $jeans = $product->getAttributeByCodeAndLocale('jeans_brand', 'de_DE');
-        $dress = $product->getAttributeByCodeAndLocale('dress_brand', 'de_DE');
-        $manufacturerName = $cap ? $cap->getValue() : $manufacturerName;
-        $manufacturerName = $tshirt ? $tshirt->getValue() : $manufacturerName;
-        $manufacturerName = $jeans ? $jeans->getValue() : $manufacturerName;
-        $manufacturerName = $dress ? $dress->getValue() : $manufacturerName;
-        $dto->setManufacture($manufacturerName);
-
-        $dtoProperties = new ProductPropertyDto();
-        foreach ($product->getVariants() as $productVariant) {
-            foreach ($productVariant->getOptionValues() as $optionValue) {
-                $dtoProperties->addProperty($optionValue->getOptionCode(), $optionValue->getValue());
-            }
-        }
-        $dto->setProperties($dtoProperties);
-
-        foreach ($product->getTaxons() as $taxon) {
-            if (!$taxon->hasChildren()) {
-                $dto->addCategory($this->getCategoryPath($taxon));
-            }
+        // the default locale of the channel fills _PRODUCT, every locale of the channel _PRODUCT_i18n
+        $defaultLocale = (string) $channel->getDefaultLocale()?->getCode();
+        $default = $this->getLocalizedFields($product, $defaultLocale);
+        $dto->setName($default['name']);
+        $dto->setDescription($default['description']);
+        $dto->setManufacture($default['manufacture']);
+        $dto->setShopUrl($default['shopUrl']);
+        $dto->setProperties($default['properties']);
+        foreach ($default['categories'] as $category) {
+            $dto->addCategory($category);
         }
 
-        $dto->setShopUrl(
-            $this->router->generate(
-                'sylius_shop_product_show',
-                ['slug' => $product->getSlug()],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            )
-        );
+        foreach ($this->getLocales($channel) as $locale) {
+            $fields = $locale === $defaultLocale ? $default : $this->getLocalizedFields($product, $locale);
+            foreach (['name', 'description', 'manufacture', 'shopUrl'] as $field) {
+                if ($fields[$field] !== null) {
+                    $dto->addTranslation($locale, $field, $fields[$field]);
+                }
+            }
+            $dto->setPropertiesTranslation($locale, $fields['properties']);
+            foreach ($fields['categories'] as $category) {
+                $dto->addCategoryTranslation($locale, $category);
+            }
+        }
 
         return $dto;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getLocales(ChannelInterface $channel): array
+    {
+        $locales = [];
+        foreach ($channel->getLocales() as $locale) {
+            $locales[] = (string) $locale->getCode();
+        }
+
+        return $locales;
+    }
+
+    /**
+     * The language dependent fields of a locale, missing translations fall back to the default of Sylius.
+     *
+     * @return array{name: ?string, description: ?string, manufacture: ?string, shopUrl: ?string, properties: ProductPropertyDto, categories: list<CategoryDto>}
+     */
+    private function getLocalizedFields(ProductInterface $product, string $locale): array
+    {
+        $translation = $product->getTranslations()->get($locale);
+        $translated = $translation instanceof ProductTranslationInterface;
+        $slug = $translated ? $translation->getSlug() : $product->getSlug();
+
+        // every value once, the variants repeat them
+        $values = [];
+        foreach ($product->getVariants() as $productVariant) {
+            foreach ($productVariant->getOptionValues() as $optionValue) {
+                $valueTranslation = $optionValue->getTranslations()->get($locale);
+                $value = $valueTranslation instanceof ProductOptionValueTranslationInterface ? $valueTranslation->getValue() : $optionValue->getValue();
+                $values[(string) $optionValue->getOptionCode()][(string) $value] = true;
+            }
+        }
+        $properties = new ProductPropertyDto();
+        foreach ($values as $option => $optionValues) {
+            foreach (array_keys($optionValues) as $value) {
+                $properties->addProperty($option, (string) $value);
+            }
+        }
+
+        $categories = [];
+        foreach ($product->getTaxons() as $taxon) {
+            if (!$taxon->hasChildren()) {
+                $categories[] = $this->getCategoryPath($taxon, $locale);
+            }
+        }
+
+        return [
+            'name' => $translated ? $translation->getName() : $product->getName(),
+            'description' => $translated ? $translation->getDescription() : $product->getDescription(),
+            'manufacture' => $this->getManufacturer($product, $locale),
+            'shopUrl' => $slug !== null
+                ? $this->router->generate('sylius_shop_product_show', ['slug' => $slug, '_locale' => $locale], UrlGeneratorInterface::ABSOLUTE_URL)
+                : null,
+            'properties' => $properties,
+            'categories' => $categories,
+        ];
+    }
+
+    private function getManufacturer(ProductInterface $product, string $locale): string
+    {
+        $manufacturerName = 'Unbekannt';
+        foreach (['cap_brand', 't_shirt_brand', 'jeans_brand', 'dress_brand'] as $code) {
+            $brand = $product->getAttributeByCodeAndLocale($code, $locale);
+            $manufacturerName = $brand ? (string) $brand->getValue() : $manufacturerName;
+        }
+
+        return $manufacturerName;
     }
 
     private function getImageUrl(ProductInterface $product, ChannelInterface $channel): ?string
@@ -192,14 +255,15 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
         return rtrim($baseUrl, '/') . $imagePath;
     }
 
-    private function getCategoryPath(TaxonInterface $taxon): CategoryDto
+    private function getCategoryPath(TaxonInterface $taxon, string $locale): CategoryDto
     {
         $dto = new CategoryDto();
         $parts = [];
         $current = $taxon;
 
         while ($current !== null) {
-            $parts[] = $current->getName();
+            $translation = $current->getTranslations()->get($locale);
+            $parts[] = (string) ($translation instanceof TaxonTranslationInterface ? $translation->getName() : $current->getName());
             $parent = $current->getParent();
             $current = $parent === null || $parent->isRoot() ? null : $parent;
         }

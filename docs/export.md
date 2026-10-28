@@ -19,18 +19,38 @@ with the id `PRODUCT-<product id>`:
 
 | Field | Source |
 |---|---|
-| `name`, `description` | Translation of the product |
+| `name`, `description` | Translation of the product, translated |
 | `ordernumber` | Product code, used by the shop to find the product of a hit |
 | `price` | Channel pricing of the first variant |
 | `instock` | On hand minus on hold of the first variant |
 | `imageUrl` | First image, filter `sylius_shop_product_thumbnail`, host name of the channel |
-| `shopUrl` | Route `sylius_shop_product_show` |
+| `shopUrl` | Route `sylius_shop_product_show` in the locale, translated |
 | `rating` | Average rating |
-| `categories` | Path of every taxon without children, e.g. `T-shirts > Women` |
-| `properties` | Option values of all variants, e.g. `t_shirt_size: [S, M, L]` |
-| `manufacture` | Attribute `cap_brand`, `t_shirt_brand`, `jeans_brand` or `dress_brand` (`de_DE`) |
+| `categories` | Path of every taxon without children, e.g. `T-shirts > Women`, translated |
+| `properties` | Option values of all variants, every value once, e.g. `t_shirt_size: [S, M, L]`, translated |
+| `manufacture` | Attribute `cap_brand`, `t_shirt_brand`, `jeans_brand` or `dress_brand`, translated |
 
 To add or change fields, see [Own fields](extending#own-fields).
+
+## Translations
+
+The default locale of the channel fills `_PRODUCT`, every locale of the channel is exported to `_PRODUCT_i18n` with the
+translated fields of the table above (locales normalized, `de_DE` => `de-de`):
+
+```json
+{
+    "id": "PRODUCT-215",
+    "type": "PRODUCT",
+    "_PRODUCT_i18n": {
+        "en-us": {"name": "Sunshine Strappy Delight", "categories": ["Dresses"], "properties": [{"dress_height": ["Petite", "Regular", "Tall"]}]},
+        "de-de": {"name": "Sunshine Strappy Delight Kleid", "categories": ["Kleider"], "properties": [{"dress_height": ["Kurz", "Normal", "Lang"]}]}
+    },
+    "_PRODUCT": {"name": "Sunshine Strappy Delight", "ordernumber": "Sunshine_Strappy_Delight", "price": 95.43}
+}
+```
+
+Missing translations fall back to Sylius' default. The [translations of the SDK](https://sdk.batteryincluded.eiling.io/translations)
+explain how the gateway resolves them.
 
 ## Full import
 
@@ -70,7 +90,9 @@ The shop needs these fields in the BatteryIncluded portal, the
 
 | Setting | Fields |
 |---|---|
-| Filterable | `_PRODUCT.categories` (category pages), `_PRODUCT.price` (price range) and every field shown as facet |
-| Sortable | `_PRODUCT.price`, `_PRODUCT.name` |
+| Variable `locale` | `{"name": "locale", "default": "en-us", "root": ["_PRODUCT_i18n", "_CONTENT_i18n"]}`, see [collection setup](https://sdk.batteryincluded.eiling.io/translations#collection-setup) |
+| Searchable | `_PRODUCT_i18n.<locale>.name` and `.description` of every locale |
+| Filterable | `_PRODUCT_i18n.<locale>.categories` (category pages) and `.properties.*` of every locale, `_PRODUCT.price` (price range), `type` with CMS pages |
+| Sortable | `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name` |
 | Suggest | `_PRODUCT.ordernumber`, otherwise the suggestions cannot be matched to products |
 | Presets | The presets of the [sliders](shop-features#sliders) |

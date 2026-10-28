@@ -17,6 +17,10 @@ sylius_fixtures:
                                         slug: "shipping"
                                         meta_title: "Shipping & delivery"
                                         teaser_content: "Free shipping from $50 within 2 to 4 working days."
+                                    de_DE:
+                                        slug: "versand"
+                                        meta_title: "Versand & Lieferung"
+                                        teaser_content: "Kostenloser Versand ab 50 $ innerhalb von 2 bis 4 Werktagen."
                                 content_elements:
                                     en_US:
                                         heading:
@@ -26,6 +30,14 @@ sylius_fixtures:
                                             type: "textarea"
                                             data:
                                                 textarea: "<p>We ship all t-shirts, jeans, dresses and caps with DHL. Orders placed before 2 pm leave our warehouse on the same day.</p><p>Shipping is free from an order value of $50, below we charge a flat rate of $4.90.</p>"
+                                    de_DE:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Versand & Lieferung" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Wir versenden alle T-Shirts, Jeans, Kleider und Mützen mit DHL. Bestellungen bis 14 Uhr verlassen unser Lager noch am selben Tag.</p><p>Ab einem Bestellwert von 50 $ ist der Versand kostenlos, darunter berechnen wir eine Pauschale von 4,90 $.</p>"
                             returns:
                                 name: "Returns"
                                 channels: ["FASHION_WEB"]
@@ -34,6 +46,10 @@ sylius_fixtures:
                                         slug: "returns"
                                         meta_title: "Returns & exchanges"
                                         teaser_content: "Return or exchange every item within 30 days."
+                                    de_DE:
+                                        slug: "rueckgabe"
+                                        meta_title: "Rückgabe & Umtausch"
+                                        teaser_content: "Jeden Artikel innerhalb von 30 Tagen zurückgeben oder umtauschen."
                                 content_elements:
                                     en_US:
                                         heading:
@@ -43,6 +59,14 @@ sylius_fixtures:
                                             type: "textarea"
                                             data:
                                                 textarea: "<p>You can return or exchange every item within 30 days of receipt, the return label is in your parcel.</p><p>The refund is made within 5 working days using the original payment method.</p>"
+                                    de_DE:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Rückgabe & Umtausch" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Du kannst jeden Artikel innerhalb von 30 Tagen nach Erhalt zurückgeben oder umtauschen, das Rücksendeetikett liegt deinem Paket bei.</p><p>Die Erstattung erfolgt innerhalb von 5 Werktagen über die ursprüngliche Zahlungsart.</p>"
                             size_guide:
                                 name: "Size guide"
                                 channels: ["FASHION_WEB"]
@@ -51,6 +75,10 @@ sylius_fixtures:
                                         slug: "size-guide"
                                         meta_title: "Size guide"
                                         teaser_content: "Find the right size for t-shirts, jeans and dresses."
+                                    de_DE:
+                                        slug: "groessentabelle"
+                                        meta_title: "Größentabelle"
+                                        teaser_content: "Die richtige Größe für T-Shirts, Jeans und Kleider finden."
                                 content_elements:
                                     en_US:
                                         heading:
@@ -60,6 +88,14 @@ sylius_fixtures:
                                             type: "textarea"
                                             data:
                                                 textarea: "<p>Our t-shirts and caps are available from XS to XXL, jeans in waist sizes from 28 to 38.</p><p>If you are between two sizes, we recommend the larger one for a relaxed fit.</p>"
+                                    de_DE:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Größentabelle" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Unsere T-Shirts und Mützen gibt es von XS bis XXL, Jeans in den Bundweiten 28 bis 38.</p><p>Liegst du zwischen zwei Größen, empfehlen wir für eine lockere Passform die größere.</p>"
                             care:
                                 name: "Care instructions"
                                 channels: ["FASHION_WEB"]
@@ -68,6 +104,10 @@ sylius_fixtures:
                                         slug: "care-instructions"
                                         meta_title: "Care instructions"
                                         teaser_content: "How to wash denim and cotton so it lasts."
+                                    de_DE:
+                                        slug: "pflegehinweise"
+                                        meta_title: "Pflegehinweise"
+                                        teaser_content: "So wäschst du Denim und Baumwolle, damit sie lange halten."
                                 content_elements:
                                     en_US:
                                         heading:
@@ -77,6 +117,14 @@ sylius_fixtures:
                                             type: "textarea"
                                             data:
                                                 textarea: "<p>Wash denim inside out in cold water and dry it on low heat to keep its color.</p><p>Cotton t-shirts can be washed at 40 °C, do not tumble dry printed shirts.</p>"
+                                    de_DE:
+                                        heading:
+                                            type: "heading"
+                                            data: { heading_type: "h2", heading: "Pflegehinweise" }
+                                        text:
+                                            type: "textarea"
+                                            data:
+                                                textarea: "<p>Wasche Jeans auf links in kaltem Wasser und trockne sie bei niedriger Temperatur, damit die Farbe erhalten bleibt.</p><p>Baumwoll-T-Shirts kannst du bei 40 °C waschen, bedruckte Shirts bitte nicht in den Trockner.</p>"
                             # disabled pages are not exported
                             internal:
                                 name: "Internal notes"

@@ -24,6 +24,11 @@ final class MockApi
     public static array $contentPageCodes = [];
 
     /**
+     * @var list<array<string, mixed>> facet_counts of the browse response
+     */
+    public static array $facets = [];
+
+    /**
      * @var list<array{method: string, url: string}>
      */
     public static array $requests = [];
@@ -32,6 +37,7 @@ final class MockApi
     {
         self::$productCodes = [];
         self::$contentPageCodes = [];
+        self::$facets = [];
         self::$requests = [];
     }
 
@@ -85,7 +91,7 @@ final class MockApi
                 'page' => 1,
                 'search_time_ms' => 1,
                 'hits' => array_map(static fn (array $document) => ['document' => $document], $documents),
-                'facet_counts' => [],
+                'facet_counts' => self::$facets,
             ]),
             str_ends_with($path, '/documents/suggest') => self::json([
                 ['kind' => 'query-completion', 'hits' => []],
@@ -95,9 +101,24 @@ final class MockApi
             str_ends_with($path, '/documents/recommendations/cart') => self::json(
                 array_map(static fn (array $document) => ['type' => 'related', 'document' => $document], $documents),
             ),
-            str_ends_with($path, '/documents/highlights') => self::json(['searches' => [], 'querySuggestions' => []]),
+            // like the gateway: query suggestions only for a locale
+            str_ends_with($path, '/documents/highlights') => self::json(['searches' => [], 'querySuggestions' => match ($query['v']['locale'] ?? null) {
+                'en-us' => ['Jeans in Size XL'],
+                'de-de' => ['Jeans in Größe XL'],
+                default => [],
+            }]),
             default => new MockResponse('{"message":"not mocked"}', ['http_code' => 404]),
         };
+    }
+
+    /**
+     * Value of a parameter of a recorded request, e.g. `v[locale]` or `f[type]`.
+     */
+    public static function parameter(string $url, string $name, string $key): mixed
+    {
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+        return $query[$name][$key] ?? null;
     }
 
     /**

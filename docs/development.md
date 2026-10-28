@@ -40,6 +40,10 @@ once:
 ddev exec 'export APP_ENV=test DATABASE_URL=mysql://root:root@db/eiling_io_sylius_battery_included_plugin_test; vendor/bin/console doctrine:database:create && vendor/bin/console doctrine:migrations:migrate -n && vendor/bin/console sylius:fixtures:load -n && vendor/bin/console sylius:fixtures:load batteryincluded_cms -n'
 ```
 
+The default fixture suite ends with `batteryincluded_german` (`tests/TestApplication/src/Fixture/GermanDemoDataFixture.php`):
+it adds `de_DE` to the channel and gives taxons, products, options and attributes german texts, the CMS pages have
+german translations as well. The shop and the tests run in `/en_US/` and `/de_DE/`.
+
 The test application enables the [Sylius CMS plugin](cms-pages) if it is installed (`require-dev`), the suite
 `batteryincluded_cms` loads a few pages. The tests of the CMS pages are skipped without it. The test environment
 stores its images in `media/image-test`, loading its fixtures does not delete the images of the dev shop.

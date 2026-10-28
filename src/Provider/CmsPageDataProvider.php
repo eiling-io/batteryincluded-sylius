@@ -128,9 +128,15 @@ final class CmsPageDataProvider implements CollectionAwareDataProviderInterface,
     {
         $dto = (new ContentPageDto((string) $page->getId()))->setCode($page->getCode());
 
+        // only the languages of the channel, like the products
+        $locales = [];
+        foreach ($channel->getLocales() as $locale) {
+            $locales[] = $locale->getCode();
+        }
+
         $translations = [];
         foreach ($page->getTranslations() as $translation) {
-            if ($translation instanceof PageTranslationInterface) {
+            if ($translation instanceof PageTranslationInterface && in_array($translation->getLocale(), $locales, true)) {
                 $translations[(string) $translation->getLocale()] = $translation;
             }
         }

@@ -40,6 +40,12 @@ final class ConsoleCommandsTest extends KernelTestCase
         self::assertStringContainsString('"id": "PRODUCT-' . $product->getId() . '"', $display);
         self::assertStringContainsString('"ordernumber": ' . json_encode($product->getCode()), $display);
         self::assertStringContainsString('"price":', $display);
+        // every language of the channel, the german texts come from the GermanDemoDataFixture
+        self::assertStringContainsString('"en-us": {', $display);
+        self::assertStringContainsString('"de-de": {', $display);
+        self::assertStringContainsString('"name": ' . json_encode($product->getTranslation('de_DE')->getName(), JSON_UNESCAPED_UNICODE), $display);
+        self::assertStringContainsString('/de_DE/products/' . $product->getTranslation('de_DE')->getSlug(), $display);
+        self::assertStringContainsString('für jeden Tag', $display);
         self::assertStringContainsString('No document for: PRODUCT-0', $display);
     }
 

@@ -2,8 +2,6 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
-use BatteryIncludedSdk\Shop\BrowseSearchStruct;
-use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
 use EilingIo\SyliusBatteryIncludedPlugin\Dto\ContentPageDto;
 use EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\Error404Component;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,8 +14,8 @@ class SearchController extends BatteryIncludedBaseController
     public function search(Request $request): Response
     {
         $searchWord = $request->query->get('search');
-        $searchStruct = new BrowseSearchStruct();
-        $searchStruct->setQuery($searchWord);
+        $searchStruct = $this->searchStructFactory->createBrowseSearchStruct();
+        $searchStruct->setQuery((string) $searchWord);
         $perPage = 9;
         $currentPage = $request->query->getInt('page', 1);
         $searchStruct->setPerPage($perPage);
@@ -41,7 +39,7 @@ class SearchController extends BatteryIncludedBaseController
         ['products' => $products, 'facets' => $facets, 'maxHits' => $maxHits, 'maxPages' => $maxPages] = $this->getResultBySearchStruct($searchStruct);
         $notFoundSlider = [];
         if (count($products) === 0) {
-            $notFoundSearch = new BrowseSearchStruct();
+            $notFoundSearch = $this->searchStructFactory->createBrowseSearchStruct();
             $notFoundSearch->setPresetId(Error404Component::PRESET_ID);
             $notFoundSearch = $this->getResultBySearchStruct($notFoundSearch);
             $notFoundSlider = $notFoundSearch['products'];
@@ -71,7 +69,7 @@ class SearchController extends BatteryIncludedBaseController
     public function searchAjax(Request $request): Response
     {
         $searchWord = $request->query->get('search', '');
-        $searchStruct = new SuggestSearchStruct();
+        $searchStruct = $this->searchStructFactory->createSuggestSearchStruct();
         $searchStruct->setQuery($searchWord);
 
         $result = $this->serviceFactory->getSuggestService()->suggestWithFilter($searchStruct);
@@ -99,7 +97,8 @@ class SearchController extends BatteryIncludedBaseController
 
         $highlights = [];
         if (strlen($searchWord) === 0) {
-            $highlights = $this->serviceFactory->getHighlightsService()->getHighlights()->getAll();
+            // the query suggestions are configured per locale
+            $highlights = $this->serviceFactory->getHighlightsService()->getHighlights($request->getLocale())->getAll();
         }
 
         return $this->render(
@@ -117,7 +116,7 @@ class SearchController extends BatteryIncludedBaseController
             return [];
         }
 
-        $searchStruct = new BrowseSearchStruct();
+        $searchStruct = $this->searchStructFactory->createBrowseSearchStruct();
         $searchStruct->setQuery($searchWord);
         $searchStruct->addFilter('type', ContentPageDto::TYPE);
         $searchStruct->setPerPage(self::CONTENT_PAGES_PER_SEARCH);

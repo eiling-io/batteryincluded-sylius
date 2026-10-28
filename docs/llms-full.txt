@@ -42,10 +42,9 @@ imports:
 ```
 
 ```yaml
-# config/routes/eiling_io_batteryincluded.yaml
+# config/routes/eiling_io_batteryincluded.yaml, the routes get the prefix /{_locale}
 eiling_io_sylius_battery_included_plugin:
-    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
-    prefix: /
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes.yaml"
 ```
 
 ```js
@@ -85,10 +84,12 @@ bin/console bi:export -c ch -f    # every further collection
 bin/console bi:sync PRODUCT-5     # single product, id PRODUCT-<Sylius product id>
 ```
 
-Only enabled products assigned to the channel are exported, as documents of type `PRODUCT`:
+Only enabled products assigned to the channel are exported, as documents of type `PRODUCT`, the default locale of the
+channel in `_PRODUCT` and every locale of the channel in `_PRODUCT_i18n` (`en-us`, `de-de`, …):
 `name`, `description`, `ordernumber` (= product code), `price` and `instock` (first variant), `imageUrl`, `shopUrl`,
 `rating`, `categories` (paths of the leaf taxons, `A > B`), `properties` (option values),
-`manufacture` (attributes `cap_brand`, `t_shirt_brand`, `jeans_brand`, `dress_brand` in `de_DE`).
+`manufacture` (attributes `cap_brand`, `t_shirt_brand`, `jeans_brand`, `dress_brand`). Translated: `name`,
+`description`, `manufacture`, `shopUrl`, `categories`, `properties`.
 
 Products are not synced automatically on save. Schedule `bi:export --force` (cron) or call the bundle's
 `DocumentSynchronizer::syncByIds(['PRODUCT-5'], $collection, deleteMissing: true)` from a listener of the Sylius
@@ -98,8 +99,11 @@ product events.
 
 In the BatteryIncluded portal (https://sdk.batteryincluded.eiling.io/backend-configuration):
 
-- Filterable: `_PRODUCT.categories`, `_PRODUCT.price` and every field shown as facet
-- Sortable: `_PRODUCT.price`, `_PRODUCT.name`
+- Variable `locale`: `{"name": "locale", "default": "en-us", "root": ["_PRODUCT_i18n", "_CONTENT_i18n"]}`, the shop
+  sends the locale of the URL (`de_DE` => `de-de`)
+- Filterable: `_PRODUCT_i18n.<locale>.categories` and `.properties.*` of every locale, `_PRODUCT.price`
+- Sortable: `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name`
+- Searchable: `_PRODUCT_i18n.<locale>.name` and `.description`
 - Suggest fields: `_PRODUCT.ordernumber` (hits are matched to Sylius products by the product code)
 - Presets with the IDs `5ec20093-4d66-4ab7-80a3-632835e02c12` (homepage slider) and
   `0b2fdce1-0809-450c-a522-cef26ce5a283` (404 page, search without hits), or disable these sliders
@@ -115,9 +119,10 @@ shown in the suggestions and above the products of the search page. Disable it w
 
 ## 5. What the shop gets
 
-- `/search?search=<q>` search page, parameters `filter[<field>]`, `filter[_PRODUCT.price][min|max]`, `sort`, `page`
-- `/searchAjax?search=<q>` suggestion overlay of the search box in the header
-- Category pages (`sylius_shop_product_index`) filtered by `_PRODUCT.categories`
+- `/{locale}/search?search=<q>` search page, parameters `filter[<field>]`, `filter[_PRODUCT.price][min|max]`, `sort`, `page`
+- `/{locale}/searchAjax?search=<q>` suggestion overlay of the search box in the header
+- Category pages (`sylius_shop_product_index`) filtered by `_PRODUCT_i18n.categories` with the path in the language of
+  the URL
 - Recommendations (`related`, `also`, `together`) on the product page, in the cart and the offcanvas cart
 - Preset sliders on the homepage and the 404 page
 
@@ -142,7 +147,7 @@ shown in the suggestions and above the products of the search page. Disable it w
 - [ ] `bin/console bi:status` exits with 0 for every collection
 - [ ] `bin/console bi:export --dry-run` lists `ProductDataProvider` with more than 0 documents
 - [ ] `bin/console bi:export --force` succeeded for every collection
-- [ ] `/search?search=<term>` shows products, the facets and sorting work
+- [ ] `/<locale>/search?search=<term>` shows products in every language, the facets and sorting work
 - [ ] Typing into the search box shows the suggestion overlay
 - [ ] A category page shows products of the taxon
 - [ ] The product page shows recommendations

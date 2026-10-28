@@ -15,7 +15,7 @@ links.
 
 ## Search page
 
-`/search?search=<query>` (route `eiling_io_sylius_battery_included_search`) shows the hits with facets, sorting and
+`/{locale}/search?search=<query>` (route `eiling_io_sylius_battery_included_search`) shows the hits with facets, sorting and
 pagination, 9 products per page.
 
 | Parameter | Example | Meaning |
@@ -23,7 +23,7 @@ pagination, 9 products per page.
 | `search` | `shirt` | Search term |
 | `filter[<field>]` | `filter[_PRODUCT.manufacture]=Nike` | Filter of a facet |
 | `filter[_PRODUCT.price][min]`, `[max]` | `filter[_PRODUCT.price][min]=10` | Price range |
-| `sort` | `_PRODUCT.price:asc` | Relevance (empty), price or name, ascending or descending |
+| `sort` | `_PRODUCT.price:asc`, `_PRODUCT_i18n.name:asc` | Relevance (empty), price or name, ascending or descending |
 | `page` | `2` | Page |
 
 Without hits the page shows the products of the 404 preset (see [Sliders](#sliders)). With the Sylius CMS plugin the
@@ -32,14 +32,20 @@ matching pages are shown above the products, see [CMS pages](cms-pages).
 ## Suggestions
 
 The plugin adds a search box to the header (hook `sylius_shop.base.header.content`). While typing, the
-script of the plugin loads `/searchAjax?search=<query>` (route `eiling_io_sylius_battery_included_search_ajax`) and
+script of the plugin loads `/{locale}/searchAjax?search=<query>` (route `eiling_io_sylius_battery_included_search_ajax`) and
 shows query completions, products and, with the Sylius CMS plugin, [pages](cms-pages) in an overlay. An empty search
 box shows the highlights of the collection.
+
+## Languages
+
+Every search sends the locale of the URL (`/de_DE/…` => `de-de`), the gateway searches and filters the translations of
+that language, see [Translations](export#translations). Facets of the other languages are hidden.
 
 ## Category pages
 
 The product list of a taxon (route `sylius_shop_product_index`) is served by BatteryIncluded: the plugin filters by
-`_PRODUCT.categories` with the path of the taxon, e.g. `T-shirts > Women`, and shows the facets, sorting and 12
+`_PRODUCT_i18n.categories` with the path of the taxon in the language of the URL, e.g. `T-shirts > Women` or
+`T-Shirts > Damen`, and shows the facets, sorting and 12
 products per page. The search filters of Sylius on this page are disabled.
 
 ## Recommendations

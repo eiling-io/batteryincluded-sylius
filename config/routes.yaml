@@ -1,3 +1,6 @@
-eiling_io_sylius_battery_included_search:
-  resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
-  name_prefix: 'eiling_io_sylius_'
+# search page and suggestions in the language of the shop, like the routes of the Sylius shop
+eiling_io_sylius_battery_included_shop:
+    resource: "@EilingIoSyliusBatteryIncludedPlugin/config/routes/shop.yaml"
+    prefix: /{_locale}
+    requirements:
+        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$

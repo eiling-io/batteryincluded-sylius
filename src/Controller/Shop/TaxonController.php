@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
-use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Taxonomy\Model\TaxonInterface;
 use Sylius\Component\Taxonomy\Repository\TaxonRepositoryInterface;
@@ -15,17 +15,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class TaxonController extends BatteryIncludedBaseController
 {
-    private const CATEGORY_FILTER_FIELD = '_PRODUCT.categories';
-
     private const PER_PAGE = 12;
 
     public function __construct(
         ServiceFactory $serviceFactory,
         ProductRepositoryInterface $productRepository,
+        SearchStructFactory $searchStructFactory,
         private readonly TaxonRepositoryInterface $taxonRepository,
         ?CmsPageFinder $cmsPageFinder = null,
     ) {
-        parent::__construct($serviceFactory, $productRepository, $cmsPageFinder);
+        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $cmsPageFinder);
     }
 
     public function index(Request $request): Response
@@ -43,10 +42,11 @@ final class TaxonController extends BatteryIncludedBaseController
         $sort = $request->query->get('sort', '');
         $filterLink = urldecode(http_build_query(compact('filter')));
 
-        $struct = new BrowseSearchStruct();
+        $struct = $this->searchStructFactory->createBrowseSearchStruct();
         $struct->setPerPage(self::PER_PAGE);
         $struct->setPage($currentPage);
-        $struct->addFilter(self::CATEGORY_FILTER_FIELD, $this->buildCategoryPath($taxon));
+        // the path in the language of the request, like the translated categories of the export
+        $struct->addFilter(SearchStructFactory::CATEGORY_FIELD, $this->buildCategoryPath($taxon));
 
         foreach ($filter as $key => $value) {
             if (is_array($value) && isset($value['min'], $value['max'])) {

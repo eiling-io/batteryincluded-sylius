@@ -2,8 +2,8 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
-use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
@@ -20,12 +20,13 @@ final class PresetSliderComponent
     public function __construct(
         private readonly ServiceFactory $serviceFactory,
         private readonly ProductRepositoryInterface $productRepository,
+        private readonly SearchStructFactory $searchStructFactory,
     ) {
     }
 
     public function mount(): void
     {
-        $struct = new BrowseSearchStruct();
+        $struct = $this->searchStructFactory->createBrowseSearchStruct();
         $struct->setPresetId(self::PRESET_ID);
 
         $result = $this->serviceFactory->getBrowseService()->browse($struct);
