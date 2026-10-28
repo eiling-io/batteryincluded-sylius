@@ -9,7 +9,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 /**
  * Response factory of the MockHttpClient of the test environment, see tests/TestApplication/config/config.yaml.
  * Every endpoint answers with the products of $productCodes and the content pages of $contentPageCodes, the filter
- * `type` restricts browse to one of them. Every request is recorded.
+ * `type` restricts browse to one of them, browse with a preset delivers $presetProductCodes. Every request is recorded.
  */
 final class MockApi
 {
@@ -17,6 +17,11 @@ final class MockApi
      * @var list<string> ordernumbers (Sylius product codes) delivered as hits
      */
     public static array $productCodes = [];
+
+    /**
+     * @var list<string> ordernumbers delivered by browse with a preset
+     */
+    public static array $presetProductCodes = [];
 
     /**
      * @var list<string> codes of CMS pages delivered as hits
@@ -36,6 +41,7 @@ final class MockApi
     public static function reset(): void
     {
         self::$productCodes = [];
+        self::$presetProductCodes = [];
         self::$contentPageCodes = [];
         self::$facets = [];
         self::$requests = [];
@@ -74,7 +80,7 @@ final class MockApi
 
         $documents = [];
         if (in_array('PRODUCT', $types, true)) {
-            foreach (self::$productCodes as $code) {
+            foreach (($query['preset'] ?? '') !== '' ? self::$presetProductCodes : self::$productCodes as $code) {
                 $documents[] = ['id' => 'PRODUCT-' . $code, 'type' => 'PRODUCT', '_PRODUCT' => ['ordernumber' => $code]];
             }
         }

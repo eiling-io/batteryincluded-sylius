@@ -95,4 +95,4 @@ The shop needs these fields in the BatteryIncluded portal, the
 | Filterable | `_PRODUCT_i18n.<locale>.categories` (category pages) and `.properties.*` of every locale, `_PRODUCT.price` (price range), `type` with CMS pages |
 | Sortable | `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name`; sorting by string fields like the name is always activated by the BatteryIncluded support |
 | Suggest | `_PRODUCT.ordernumber`, otherwise the suggestions cannot be matched to products |
-| Presets | The presets of the [sliders](shop-features#sliders) |
+| Presets | The presets of the [sliders](shop-features#sliders), their IDs go into the [configuration](configuration#presets) |

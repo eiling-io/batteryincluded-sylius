@@ -75,6 +75,16 @@ eiling_io_sylius_battery_included:
 
 Without `channels` the products of the first enabled channel are exported into `default`.
 
+Preset IDs of the sliders, per collection (a slider without preset is not shown):
+
+```yaml
+eiling_io_sylius_battery_included:
+    presets:
+        default:
+            homepage: <preset id>    # homepage slider
+            not_found: <preset id>   # 404 page and search without hits
+```
+
 ## 3. Export
 
 ```bash
@@ -106,8 +116,7 @@ In the BatteryIncluded portal (https://sdk.batteryincluded.eiling.io/backend-con
   activated by the BatteryIncluded support)
 - Searchable: `_PRODUCT_i18n.<locale>.name` and `.description`
 - Suggest fields: `_PRODUCT.ordernumber` (hits are matched to Sylius products by the product code)
-- Presets with the IDs `5ec20093-4d66-4ab7-80a3-632835e02c12` (homepage slider) and
-  `0b2fdce1-0809-450c-a522-cef26ce5a283` (404 page, search without hits), or disable these sliders
+- Presets of the homepage slider and the 404 slider, their IDs in `eiling_io_sylius_battery_included.presets`
 
 ## 4b. Optional: pages of the Sylius CMS plugin
 

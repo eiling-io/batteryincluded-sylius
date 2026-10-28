@@ -61,4 +61,22 @@ bin/console config:dump-reference eiling_io_sylius_battery_included
 | Option | Default | Meaning |
 |---|---|---|
 | `channels` | `{}` | Channel code => collection name of the bundle |
+| `presets` | `{}` | Collection name => preset IDs of the sliders, see [Presets](#presets) |
 | `cms_pages` | `true` | Exports and searches the pages of the Sylius CMS plugin, only if it is installed, see [CMS pages](cms-pages) |
+
+## Presets
+
+The [sliders](shop-features#sliders) show the products of a preset of the BatteryIncluded portal. Preset IDs belong to
+a collection, so they are configured per collection:
+
+```yaml
+eiling_io_sylius_battery_included:
+    presets:
+        default:
+            homepage: 4474bb20-a291-4ecb-9e56-59afb061864b   # slider on the homepage
+            not_found: 29ca74c9-2b4e-4cda-a524-1e928c1b95bc  # 404 page and search without hits
+        ch:
+            homepage: …
+```
+
+A slider without preset ID is not shown.

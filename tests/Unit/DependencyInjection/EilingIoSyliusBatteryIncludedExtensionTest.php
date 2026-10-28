@@ -9,6 +9,7 @@ use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\DependencyInjection\EilingIoSyliusBatteryIncludedExtension;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\ProductDataProvider;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -74,6 +75,18 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
 
         self::assertFalse($container->hasDefinition(CmsPageFinder::class));
         self::assertNotContains('eiling_io_sylius_battery_included.cms_page_data_provider.default', $this->providerIds($container));
+    }
+
+    public function testThePresetsArePassedPerCollection(): void
+    {
+        self::assertSame([], $this->load([])->getDefinition(PresetProductFinder::class)->getArgument('$presets'));
+
+        $container = $this->load(['presets' => ['default' => ['homepage' => 'home-id'], 'ch' => ['not_found' => '404-id']]]);
+
+        self::assertEquals([
+            'default' => ['homepage' => 'home-id', 'not_found' => null],
+            'ch' => ['homepage' => null, 'not_found' => '404-id'],
+        ], $container->getDefinition(PresetProductFinder::class)->getArgument('$presets'));
     }
 
     /**

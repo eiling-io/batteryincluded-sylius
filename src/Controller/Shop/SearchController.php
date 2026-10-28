@@ -2,14 +2,28 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
+use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Dto\ContentPageDto;
-use EilingIo\SyliusBatteryIncludedPlugin\Twig\Components\Error404Component;
+use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
+use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends BatteryIncludedBaseController
 {
     private const CONTENT_PAGES_PER_SEARCH = 4;
+
+    public function __construct(
+        ServiceFactory $serviceFactory,
+        ProductRepositoryInterface $productRepository,
+        SearchStructFactory $searchStructFactory,
+        private readonly PresetProductFinder $presetProductFinder,
+        ?CmsPageFinder $cmsPageFinder = null,
+    ) {
+        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $cmsPageFinder);
+    }
 
     public function search(Request $request): Response
     {
@@ -37,13 +51,7 @@ class SearchController extends BatteryIncludedBaseController
         }
 
         ['products' => $products, 'facets' => $facets, 'maxHits' => $maxHits, 'maxPages' => $maxPages] = $this->getResultBySearchStruct($searchStruct);
-        $notFoundSlider = [];
-        if (count($products) === 0) {
-            $notFoundSearch = $this->searchStructFactory->createBrowseSearchStruct();
-            $notFoundSearch->setPresetId(Error404Component::PRESET_ID);
-            $notFoundSearch = $this->getResultBySearchStruct($notFoundSearch);
-            $notFoundSlider = $notFoundSearch['products'];
-        };
+        $notFoundSlider = count($products) === 0 ? $this->presetProductFinder->find(PresetProductFinder::NOT_FOUND) : [];
 
         // the matching content pages above the products of the first page
         $contentPages = $currentPage === 1 ? $this->findContentPages((string) $searchWord) : [];

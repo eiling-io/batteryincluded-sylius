@@ -10,6 +10,7 @@ use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\CmsPageDataProvider;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\ProductDataProvider;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
 use Sylius\Bundle\CoreBundle\DependencyInjection\PrependDoctrineMigrationsTrait;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
@@ -38,6 +39,8 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
 
         $container->getDefinition(ChannelCollectionResolver::class)
             ->setArgument('$channelCollections', $config['channels']);
+        $container->getDefinition(PresetProductFinder::class)
+            ->setArgument('$presets', $config['presets']);
 
         $this->registerDataProviders('product_data_provider', ProductDataProvider::class, $config['channels'], $container);
 

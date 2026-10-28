@@ -7,6 +7,10 @@ imports:
 eiling_io_sylius_battery_included:
     channels:
         FASHION_WEB: default
+    presets:
+        default:
+            homepage: 4474bb20-a291-4ecb-9e56-59afb061864b
+            not_found: 29ca74c9-2b4e-4cda-a524-1e928c1b95bc
 
 twig:
     paths:

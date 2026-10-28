@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
-use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
-use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
-use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent(
@@ -15,40 +13,14 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 )]
 final class Error404Component
 {
-    public const PRESET_ID = "0b2fdce1-0809-450c-a522-cef26ce5a283";
-
     public array $products = [];
 
-    public function __construct(
-        private readonly ServiceFactory $serviceFactory,
-        private readonly ProductRepositoryInterface $productRepository,
-        private readonly SearchStructFactory $searchStructFactory,
-    ) {
+    public function __construct(private readonly PresetProductFinder $presetProductFinder)
+    {
     }
 
     public function mount(): void
     {
-        $struct = $this->searchStructFactory->createBrowseSearchStruct();
-        $struct->setPresetId(self::PRESET_ID);
-
-        $result = $this->serviceFactory->getBrowseService()->browse($struct);
-
-        $orderNumbers = array_values(
-            array_filter(
-                array_map(
-                    static fn($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
-                    $result->getHits()
-                )
-            )
-        );
-
-        if (empty($orderNumbers)) {
-            return;
-        }
-
-        $unsorted = $this->productRepository->findBy(['code' => $orderNumbers]);
-        $position = array_flip($orderNumbers);
-        usort($unsorted, static fn($a, $b) => $position[$a->getCode()] <=> $position[$b->getCode()]);
-        $this->products = $unsorted;
+        $this->products = $this->presetProductFinder->find(PresetProductFinder::NOT_FOUND);
     }
 }

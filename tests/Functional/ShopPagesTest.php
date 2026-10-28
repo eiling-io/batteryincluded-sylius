@@ -67,6 +67,7 @@ final class ShopPagesTest extends WebTestCase
 
         self::assertNotSame($this->hit['names']['en_US'], $this->hit['names']['de_DE'], 'The german fixtures are missing.');
         MockApi::$productCodes = [$this->hit['code']];
+        MockApi::$presetProductCodes = [$this->hit['code']];
     }
 
     public function testHomepageShowsThePresetSlider(): void
@@ -75,6 +76,19 @@ final class ShopPagesTest extends WebTestCase
 
         $this->assertHitIn('[aria-labelledby="index-products-heading"]', 'en_US');
         $this->assertLocaleOf('/documents/browse', 'en-us');
+        // tests/TestApplication/config/config.yaml
+        self::assertSame('4474bb20-a291-4ecb-9e56-59afb061864b', $this->query('/documents/browse', 'preset'));
+    }
+
+    public function testSearchWithoutHitsShowsTheNotFoundPreset(): void
+    {
+        MockApi::$productCodes = [];
+
+        $this->request('/de_DE/search?search=nichts');
+
+        $this->assertHitIn('body', 'de_DE');
+        // the second browse request, after the search
+        self::assertSame('29ca74c9-2b4e-4cda-a524-1e928c1b95bc', $this->query('/documents/browse', 'preset', 1));
     }
 
     public function testSearchShowsTheHits(): void
@@ -181,9 +195,9 @@ final class ShopPagesTest extends WebTestCase
         self::assertSame($locale, MockApi::parameter($urls[0], 'v', 'locale'));
     }
 
-    private function query(string $path, string $name): mixed
+    private function query(string $path, string $name, int $request = 0): mixed
     {
-        parse_str((string) parse_url(MockApi::requestedUrls($path)[0], PHP_URL_QUERY), $query);
+        parse_str((string) parse_url(MockApi::requestedUrls($path)[$request], PHP_URL_QUERY), $query);
 
         return $query[$name] ?? null;
     }

@@ -71,8 +71,8 @@ sylius_twig_hooks:
 | `eiling_io_preset_slider` | `sylius_shop.homepage.index` | `EilingIo:PresetSlider` |
 | `eiling_io_error404_products` | `sylius_shop.error404.error` | `EilingIo:Error404` |
 
-To show another preset, disable the slider and add an own component that browses with
-`BrowseSearchStruct::setPresetId()`, see [Services](#services).
+The presets of the sliders are configured, see [Presets](configuration#presets). For further sliders use the
+`PresetProductFinder` in an own component or browse with `BrowseSearchStruct::setPresetId()`, see [Services](#services).
 
 ## Own fields
 

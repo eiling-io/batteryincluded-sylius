@@ -60,14 +60,14 @@ The types are `related`, `also` and `together`, each with its own heading. Types
 
 ## Sliders
 
-| Page | Hook | Preset |
+| Page | Hook | Option |
 |---|---|---|
-| Homepage | `sylius_shop.homepage.index` | `5ec20093-4d66-4ab7-80a3-632835e02c12` |
-| 404 page and search without hits | `sylius_shop.error404.error` | `0b2fdce1-0809-450c-a522-cef26ce5a283` |
+| Homepage | `sylius_shop.homepage.index` | `presets.<collection>.homepage` |
+| 404 page and search without hits | `sylius_shop.error404.error` | `presets.<collection>.not_found` |
 
-{: .note }
-The preset IDs are fixed in `PresetSliderComponent` and `Error404Component`. With another collection create presets
-with these IDs in the portal, or replace the sliders as described in [Extending the plugin](extending#twig-hooks).
+Create the presets in the BatteryIncluded portal and configure their IDs per collection, see
+[Presets](configuration#presets). A slider without preset is not shown: the gateway ignores unknown preset IDs and
+would deliver arbitrary documents. With the Sylius CMS plugin the sliders request products only.
 
 ## Translations
 
