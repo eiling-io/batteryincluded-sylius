@@ -170,7 +170,7 @@ final class ShopPagesTest extends WebTestCase
         $this->request('/en_US/products/' . $this->page['slug']);
 
         $this->assertHitIn('[aria-labelledby="recommendation-related-heading"]', 'en_US');
-        self::assertStringContainsString('id=PRODUCT-' . $this->page['id'], urldecode(MockApi::requestedUrls('/documents/recommendations')[0]));
+        self::assertStringContainsString('id=PRODUCT-' . $this->page['id'], urldecode(MockApi::requestedUrls('/documents/recommendations')[0]));        $this->assertLocaleOf('/documents/recommendations', 'en-us');
     }
 
     private function request(string $url): void

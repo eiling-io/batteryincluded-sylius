@@ -7,6 +7,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent(
@@ -20,6 +21,7 @@ final class OffcanvasCartRecommendationComponent
     public function __construct(
         private readonly ServiceFactory $serviceFactory,
         private readonly ProductRepositoryInterface $productRepository,
+        private readonly LocaleContextInterface $localeContext,
     ) {
     }
 
@@ -42,7 +44,7 @@ final class OffcanvasCartRecommendationComponent
             return;
         }
 
-        $rawResult = $this->serviceFactory->getCartRecommendationsService()->recommendByIdentifiers($productIds)->getRecommendations();
+        $rawResult = $this->serviceFactory->getCartRecommendationsService()->recommendByIdentifiers($productIds, locale: $this->localeContext->getLocaleCode())->getRecommendations();
         foreach ($rawResult as $key => $recommendations) {
             if (count($recommendations) > 0) {
                 $orderNumbers = array_values(

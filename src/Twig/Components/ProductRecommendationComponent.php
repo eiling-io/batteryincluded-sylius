@@ -6,6 +6,7 @@ use BatteryIncludedSdk\Recommendations\RecommendationsService;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent(
@@ -20,14 +21,15 @@ final class ProductRecommendationComponent
 
     public function __construct(
         private readonly ServiceFactory $serviceFactory,
-        private readonly ProductRepositoryInterface $productRepository
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly LocaleContextInterface $localeContext,
     ) {
     }
 
     public function mount(ProductInterface|null $productDetail = null): void
     {
         if ($productDetail instanceof ProductInterface) {
-            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier((string) $productDetail->getId())->getRecommendations();
+            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier((string) $productDetail->getId(), locale: $this->localeContext->getLocaleCode())->getRecommendations();
             foreach ($rawResult as $key => $recommendations) {
                 if (count($recommendations) > 0) {
                     $orderNumbers = array_values(
