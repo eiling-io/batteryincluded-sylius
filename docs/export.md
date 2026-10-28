@@ -93,6 +93,6 @@ The shop needs these fields in the BatteryIncluded portal, the
 | Variable `locale` | `{"name": "locale", "default": "en-us", "root": ["_PRODUCT_i18n", "_CONTENT_i18n"]}`, see [collection setup](https://sdk.batteryincluded.eiling.io/translations#collection-setup) |
 | Searchable | `_PRODUCT_i18n.<locale>.name` and `.description` of every locale |
 | Filterable | `_PRODUCT_i18n.<locale>.categories` (category pages) and `.properties.*` of every locale, `_PRODUCT.price` (price range), `type` with CMS pages |
-| Sortable | `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name` |
+| Sortable | `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name`; sorting by string fields like the name is always activated by the BatteryIncluded support |
 | Suggest | `_PRODUCT.ordernumber`, otherwise the suggestions cannot be matched to products |
 | Presets | The presets of the [sliders](shop-features#sliders) |

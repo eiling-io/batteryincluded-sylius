@@ -102,7 +102,8 @@ In the BatteryIncluded portal (https://sdk.batteryincluded.eiling.io/backend-con
 - Variable `locale`: `{"name": "locale", "default": "en-us", "root": ["_PRODUCT_i18n", "_CONTENT_i18n"]}`, the shop
   sends the locale of the URL (`de_DE` => `de-de`)
 - Filterable: `_PRODUCT_i18n.<locale>.categories` and `.properties.*` of every locale, `_PRODUCT.price`
-- Sortable: `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name`
+- Sortable: `_PRODUCT.price`, `_PRODUCT_i18n.<locale>.name` (sorting by string fields like the name always has to be
+  activated by the BatteryIncluded support)
 - Searchable: `_PRODUCT_i18n.<locale>.name` and `.description`
 - Suggest fields: `_PRODUCT.ordernumber` (hits are matched to Sylius products by the product code)
 - Presets with the IDs `5ec20093-4d66-4ab7-80a3-632835e02c12` (homepage slider) and
