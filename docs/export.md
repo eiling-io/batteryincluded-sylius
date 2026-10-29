@@ -79,9 +79,31 @@ bin/console bi:delete PRODUCT-5 --force
 From your code use the `DocumentSynchronizer` or dispatch a `SyncDocumentsMessage`, e.g. after a product was saved in
 the admin, see [single documents](https://bundle.batteryincluded.eiling.io/single-documents).
 
+## Automatic sync
+
+Products and CMS pages are synced as soon as they are saved, in the admin, by the API or by your own code. The
+`DocumentChangeListener` of the plugin watches Doctrine and hands the changed documents to the
+[`DocumentChangeQueue`](https://bundle.batteryincluded.eiling.io/single-documents#documentchangequeue) of the bundle,
+which sends them at the end of the request:
+
+| Change | Result |
+|---|---|
+| Product, its translations, variants, prices, images, taxons and attributes | `PRODUCT-<id>` is synced into every collection of the plugin |
+| Product disabled or removed from a channel | Deleted from the collections whose channel does not deliver it anymore (`deleteMissing`) |
+| Product removed | Deleted from every collection |
+| CMS page, its translations and content elements | `CONTENT-<id>`, the same way |
+
+With symfony/messenger the queue dispatches `SyncDocumentsMessage`s: route them to an async transport in production,
+see [Messenger](https://bundle.batteryincluded.eiling.io/single-documents#messenger). Errors are logged to the
+`batteryincluded` channel and never break the admin.
+
 {: .note }
-The plugin does not sync products automatically when they are changed in the admin yet, run `bi:export` regularly or
-call the `DocumentSynchronizer` from a listener of the Sylius resource events.
+Changes which affect many products are not tracked: taxon names, option values, attributes of a product type. Run
+`bi:export` after such changes and regularly, e.g. with the [scheduler of the bundle](https://bundle.batteryincluded.eiling.io/export#scheduler).
+
+{: .warning }
+Loading fixtures (`sylius:fixtures:load`) syncs every product of the fixtures into the configured collection. Disable
+the sync with `sync_changes: false` in environments which must not change the collection.
 
 ## Portal configuration
 

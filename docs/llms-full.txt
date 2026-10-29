@@ -101,9 +101,11 @@ channel in `_PRODUCT` and every locale of the channel in `_PRODUCT_i18n` (`en-us
 `manufacture` (attributes `cap_brand`, `t_shirt_brand`, `jeans_brand`, `dress_brand`). Translated: `name`,
 `description`, `manufacture`, `shopUrl`, `categories`, `properties`.
 
-Products are not synced automatically on save. Schedule `bi:export --force` (cron) or call the bundle's
-`DocumentSynchronizer::syncByIds(['PRODUCT-5'], $collection, deleteMissing: true)` from a listener of the Sylius
-product events.
+Saved and removed products and CMS pages are synced automatically (`DocumentChangeListener` → `DocumentChangeQueue`
+of the bundle, at the end of the request, `deleteMissing` into every collection). Not tracked: taxon names, option
+values; run `bi:export --force` regularly (cron or `batteryincluded.export.schedule`). Disable with
+`eiling_io_sylius_battery_included.sync_changes: false`, e.g. where fixtures must not reach the collection.
+`ShopDocumentUrlResolver` links products and CMS pages for `bi_document_url()` and the bundle's suggest endpoint.
 
 ## 4. Portal configuration
 

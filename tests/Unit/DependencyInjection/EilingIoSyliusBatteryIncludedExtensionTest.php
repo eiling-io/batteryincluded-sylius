@@ -9,7 +9,9 @@ use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\DependencyInjection\EilingIoSyliusBatteryIncludedExtension;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\ProductDataProvider;
+use EilingIo\SyliusBatteryIncludedPlugin\Document\ShopDocumentUrlResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
+use EilingIo\SyliusBatteryIncludedPlugin\Sync\DocumentChangeListener;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -87,6 +89,25 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
             'default' => ['homepage' => 'home-id', 'not_found' => null],
             'ch' => ['homepage' => null, 'not_found' => '404-id'],
         ], $container->getDefinition(PresetProductFinder::class)->getArgument('$presets'));
+    }
+
+    public function testChangesAreSyncedIntoEveryCollection(): void
+    {
+        $listener = $this->load([])->getDefinition(DocumentChangeListener::class);
+        self::assertSame(['default'], $listener->getArgument('$collections'));
+        self::assertFalse($listener->getArgument('$cmsPages'));
+        self::assertSame(['onFlush', 'postFlush', 'onClear'], array_column($listener->getTag('doctrine.event_listener'), 'event'));
+
+        $container = $this->load(['channels' => ['FASHION_WEB' => 'default', 'FASHION_CH' => 'ch']], ['SyliusCmsPlugin' => \stdClass::class]);
+        $listener = $container->getDefinition(DocumentChangeListener::class);
+        self::assertSame(['default', 'ch'], $listener->getArgument('$collections'));
+        self::assertTrue($listener->getArgument('$cmsPages'));
+        self::assertSame('sylius_cms.repository.page', (string) $container->getDefinition(ShopDocumentUrlResolver::class)->getArgument('$pageRepository'));
+    }
+
+    public function testSyncingChangesCanBeDisabled(): void
+    {
+        self::assertFalse($this->load(['sync_changes' => false])->hasDefinition(DocumentChangeListener::class));
     }
 
     /**

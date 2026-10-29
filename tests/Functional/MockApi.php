@@ -34,7 +34,7 @@ final class MockApi
     public static array $facets = [];
 
     /**
-     * @var list<array{method: string, url: string}>
+     * @var list<array{method: string, url: string, body: string}>
      */
     public static array $requests = [];
 
@@ -72,7 +72,8 @@ final class MockApi
      */
     public function __invoke(string $method, string $url, array $options = []): MockResponse
     {
-        self::$requests[] = ['method' => $method, 'url' => $url];
+        $body = is_string($options['body'] ?? null) ? $options['body'] : '';
+        self::$requests[] = ['method' => $method, 'url' => $url, 'body' => $body];
 
         $path = (string) parse_url($url, PHP_URL_PATH);
         parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
@@ -91,6 +92,12 @@ final class MockApi
         }
 
         return match (true) {
+            // single documents (bi:sync, DocumentChangeQueue), every document is accepted
+            str_ends_with($path, '/documents/import') => self::json(array_map(
+                static fn (string $line) => ['id' => json_decode($line, true)['id'] ?? null, 'success' => true],
+                array_values(array_filter(explode("\n", $body))),
+            )),
+            str_ends_with($path, '/documents/delete') => self::json(['num_deleted' => count((array) json_decode($body, true))]),
             str_ends_with($path, '/documents/browse') => self::json([
                 'found' => count($documents),
                 'out_of' => count($documents),
@@ -115,6 +122,26 @@ final class MockApi
             }]),
             default => new MockResponse('{"message":"not mocked"}', ['http_code' => 404]),
         };
+    }
+
+    /**
+     * @param string ...$paths e.g. `/documents/import`
+     *
+     * @return list<string> bodies of the requests to these paths
+     */
+    public static function requestedBodies(string ...$paths): array
+    {
+        $bodies = [];
+        foreach (self::$requests as $request) {
+            $path = (string) parse_url($request['url'], PHP_URL_PATH);
+            foreach ($paths as $expected) {
+                if (str_ends_with($path, $expected)) {
+                    $bodies[] = $request['body'];
+                }
+            }
+        }
+
+        return $bodies;
     }
 
     /**

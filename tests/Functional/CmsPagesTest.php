@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\EilingIo\SyliusBatteryIncludedPlugin\Functional;
 
+use Batteryincluded\BatteryincludedBundle\Sync\DocumentChangeQueue;
 use Doctrine\ORM\EntityRepository;
+use EilingIo\SyliusBatteryIncludedPlugin\Document\ShopDocumentUrlResolver;
 use Sylius\CmsPlugin\Entity\PageInterface;
+use Sylius\CmsPlugin\Entity\PageTranslationInterface;
 use Sylius\CmsPlugin\SyliusCmsPlugin;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -86,11 +89,15 @@ final class CmsPagesTest extends WebTestCase
 
     public function testExportDeliversTheEnabledPages(): void
     {
+        $report = (string) tempnam(sys_get_temp_dir(), 'bi-report');
         $command = $this->command('bi:export');
-        $command->execute(['--dry-run' => true]);
+        $command->execute(['--dry-run' => true, '--report' => $report]);
 
         $command->assertCommandIsSuccessful();
-        self::assertMatchesRegularExpression('/CmsPageDataProvider\s+4\s+1/', $command->getDisplay());
+        $types = json_decode((string) file_get_contents($report), true, flags: JSON_THROW_ON_ERROR)['types'];
+        unlink($report);
+        self::assertSame(4, $types['CONTENT']);
+        self::assertGreaterThan(0, $types['PRODUCT']);
     }
 
     public function testSyncDeliversTheDocumentOfAPage(): void
@@ -118,6 +125,32 @@ final class CmsPagesTest extends WebTestCase
         self::assertStringContainsString('Bestellungen bis 14 Uhr', $display);
         self::assertStringContainsString('/de_DE/pages/versand', $display);
         self::assertStringContainsString('No document for: CONTENT-' . $internal->getId(), $display);
+    }
+
+    public function testAChangedPageIsSyncedAndLinked(): void
+    {
+        /** @var EntityRepository<PageInterface> $repository */
+        $repository = self::getContainer()->get('sylius_cms.repository.page');
+        $shipping = $repository->findOneBy(['code' => 'shipping']);
+        self::assertNotNull($shipping);
+        $id = 'CONTENT-' . $shipping->getId();
+
+        $entityManager = self::getContainer()->get('doctrine.orm.entity_manager');
+        $queue = self::getContainer()->get(DocumentChangeQueue::class);
+        $entityManager->beginTransaction();
+        try {
+            $translation = $shipping->getTranslation('de_DE');
+            self::assertInstanceOf(PageTranslationInterface::class, $translation);
+            $translation->setTitle('Versand');
+            $entityManager->flush();
+
+            self::assertSame(['default' => [$id => ['action' => 'sync', 'deleteMissing' => true]]], $queue->getChanges());
+        } finally {
+            $queue->reset();
+            $entityManager->rollback();
+        }
+
+        self::assertSame('/en_US/pages/shipping', self::getContainer()->get(ShopDocumentUrlResolver::class)->resolve($id, 'CONTENT', []));
     }
 
     private function command(string $name): CommandTester

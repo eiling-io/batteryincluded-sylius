@@ -8,9 +8,11 @@ use Batteryincluded\BatteryincludedBundle\BatteryincludedBundle;
 use Batteryincluded\BatteryincludedBundle\Provider\DataProviderInterface;
 use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
+use EilingIo\SyliusBatteryIncludedPlugin\Document\ShopDocumentUrlResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\CmsPageDataProvider;
 use EilingIo\SyliusBatteryIncludedPlugin\Provider\ProductDataProvider;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
+use EilingIo\SyliusBatteryIncludedPlugin\Sync\DocumentChangeListener;
 use Sylius\Bundle\CoreBundle\DependencyInjection\PrependDoctrineMigrationsTrait;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
@@ -44,8 +46,19 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
 
         $this->registerDataProviders('product_data_provider', ProductDataProvider::class, $config['channels'], $container);
 
-        if ($config['cms_pages'] && $container->hasParameter('kernel.bundles') && isset($container->getParameter('kernel.bundles')[self::CMS_BUNDLE])) {
+        $cmsPages = $config['cms_pages'] && $container->hasParameter('kernel.bundles') && isset($container->getParameter('kernel.bundles')[self::CMS_BUNDLE]);
+        if ($cmsPages) {
             $this->registerCmsPages($config['channels'], $container);
+        }
+
+        if ($config['sync_changes']) {
+            $container->register(DocumentChangeListener::class, DocumentChangeListener::class)
+                ->setAutowired(true)
+                ->setArgument('$collections', $config['channels'] === [] ? [BatteryincludedBundle::DEFAULT_COLLECTION] : array_values($config['channels']))
+                ->setArgument('$cmsPages', $cmsPages)
+                ->addTag('doctrine.event_listener', ['event' => 'onFlush'])
+                ->addTag('doctrine.event_listener', ['event' => 'postFlush'])
+                ->addTag('doctrine.event_listener', ['event' => 'onClear']);
         }
     }
 
@@ -90,6 +103,9 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
         foreach ($this->registerDataProviders('cms_page_data_provider', CmsPageDataProvider::class, $channels, $container) as $id) {
             $container->getDefinition($id)->setArgument('$pageRepository', new Reference('sylius_cms.repository.page'));
         }
+
+        $container->getDefinition(ShopDocumentUrlResolver::class)
+            ->setArgument('$pageRepository', new Reference('sylius_cms.repository.page'));
 
         $container->register(CmsPageFinder::class, CmsPageFinder::class)
             ->setAutowired(true)

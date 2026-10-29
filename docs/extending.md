@@ -19,7 +19,8 @@ and the API. Most extensions use the extension points of the bundle:
 | Add or change fields of the products | `DocumentsEvent` | [Own fields](#own-fields), [events of the bundle](https://bundle.batteryincluded.eiling.io/events) |
 | Export content pages, blog posts, stores | Own data provider | [Own documents](#own-documents), [own document types](https://bundle.batteryincluded.eiling.io/export#own-document-types) |
 | Stop or monitor the export | `PreExportEvent`, `PostExportEvent` | [Events & extension points](https://bundle.batteryincluded.eiling.io/events) |
-| Sync products after saving | `DocumentSynchronizer`, Messenger | [Single documents](https://bundle.batteryincluded.eiling.io/single-documents) |
+| Sync further entities after saving | `DocumentChangeQueue` | [Automatic sync](export#automatic-sync), [single documents](https://bundle.batteryincluded.eiling.io/single-documents) |
+| Link documents in own templates | `bi_document_url()` | [Document urls](#document-urls) |
 | Search, suggest, recommend in own code | SDK services | [Services](#services), [SDK](https://sdk.batteryincluded.eiling.io) |
 | Cache, retries, logging of API calls | Bundle configuration | [Configuration of the bundle](https://bundle.batteryincluded.eiling.io/configuration) |
 
@@ -136,6 +137,26 @@ of the bundle shows a complete provider.
 To replace the product export of the plugin, decorate the provider of a collection. Its service id is
 `eiling_io_sylius_battery_included.product_data_provider.<collection>`, e.g.
 `eiling_io_sylius_battery_included.product_data_provider.default`.
+
+## Document urls
+
+`ShopDocumentUrlResolver` implements the `DocumentUrlResolverInterface` of the bundle: products and CMS pages link to
+their Sylius route in the locale of the request, e.g. `/de_DE/products/<slug>`. The suggest endpoint and the
+[Twig functions](https://bundle.batteryincluded.eiling.io/frontend#twig-functions) of the bundle use it:
+
+{% raw %}
+```twig
+{% for document in bi_search('', {type: 'PRODUCT', per_page: 3, collection: 'default'}) %}
+    <a href="{{ bi_document_url(document) }}">{{ document._PRODUCT.name }}</a>
+{% endfor %}
+```
+{% endraw %}
+
+{: .note }
+The Twig functions of the bundle use the collection `default` unless you pass `collection`, they do not know the
+channel. Pass the collection of the channel in shops with several channels.
+
+Add an own resolver for further document types, every service implementing the interface is asked.
 
 ## Services
 

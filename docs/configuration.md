@@ -62,6 +62,7 @@ bin/console config:dump-reference eiling_io_sylius_battery_included
 |---|---|---|
 | `channels` | `{}` | Channel code => collection name of the bundle |
 | `presets` | `{}` | Collection name => preset IDs of the sliders, see [Presets](#presets) |
+| `sync_changes` | `true` | Syncs products and CMS pages after they were saved or removed, see [Automatic sync](export#automatic-sync) |
 | `cms_pages` | `true` | Exports and searches the pages of the Sylius CMS plugin, only if it is installed, see [CMS pages](cms-pages) |
 
 ## Presets
