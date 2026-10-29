@@ -2,8 +2,11 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Twig\Components;
 
-use BatteryIncludedSdk\Recommendations\RecommendationsService;
+use BatteryIncludedSdk\Recommendations\RecommendationsResponse;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ApiCallGuard;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ProductHits;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
@@ -23,23 +26,22 @@ final class ProductRecommendationComponent
         private readonly ServiceFactory $serviceFactory,
         private readonly ProductRepositoryInterface $productRepository,
         private readonly LocaleContextInterface $localeContext,
+        private readonly ApiCallGuard $apiCallGuard,
+        private readonly ChannelCollectionResolver $channelCollectionResolver,
     ) {
     }
 
     public function mount(ProductInterface|null $productDetail = null): void
     {
         if ($productDetail instanceof ProductInterface) {
-            $rawResult = $this->serviceFactory->getRecommendationsService()->recommendByIdentifier((string) $productDetail->getId(), locale: $this->localeContext->getLocaleCode())->getRecommendations();
+            $rawResult = $this->apiCallGuard->call(
+                'recommendations',
+                fn () => $this->serviceFactory->getRecommendationsService()->recommendByIdentifier((string) $productDetail->getId(), locale: $this->localeContext->getLocaleCode(), availability: $this->channelCollectionResolver->resolveAvailability()),
+                new RecommendationsResponse('', 503),
+            )->getRecommendations();
             foreach ($rawResult as $key => $recommendations) {
                 if (count($recommendations) > 0) {
-                    $orderNumbers = array_values(
-                        array_filter(
-                            array_map(
-                                static fn($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
-                                $recommendations
-                            )
-                        )
-                    );
+                    $orderNumbers = ProductHits::orderNumbers($recommendations);
 
                     if (!empty($orderNumbers)) {
                         $orderNumbers = array_slice($orderNumbers, 0, 4);

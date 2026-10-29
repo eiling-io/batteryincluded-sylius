@@ -36,9 +36,39 @@ eiling_io_sylius_battery_included:
 
 Rules:
 
-- A collection can only be assigned to one channel, the configuration is rejected otherwise.
+- Channels may share a collection, see [Shared collections](#shared-collections).
 - Without `channels` the products of the first enabled channel are exported into `default`.
 - Collection names match `[a-z][a-z0-9_]*`, see [several collections](https://bundle.batteryincluded.eiling.io/configuration#several-collections).
+
+## Shared collections
+
+Channels selling mostly the same products can share one collection instead of maintaining one per channel:
+
+```yaml
+eiling_io_sylius_battery_included:
+    channels:
+        FASHION_WEB: default     # first channel: defaults of the documents
+        FASHION_CH: default
+```
+
+| Where | What happens |
+|---|---|
+| Export | One document per product of any of the channels. The first channel of the product (in the order of `channels`) delivers price, image host and default language of `_PRODUCT`, the languages of all channels are exported to `_PRODUCT_i18n` |
+| Availability | Every channel exports its status and price to `_PRODUCT_availability.<channel code>`, e.g. `fashion-ch: {active: false}` for a product not sold in `FASHION_CH` |
+| Shop | Search, suggestions, sliders and recommendations request the channel as availability (`v[availability]=fashion-ch`), products which are inactive there are not shown |
+| CMS pages | Pages of all channels are exported, the shop shows only the pages of its channel |
+
+Configure the availability variable in the BatteryIncluded portal, the gateway then delivers only the scope of the
+request:
+
+```json
+{"name": "availability", "default": "fashion-web", "root": ["_PRODUCT_availability"]}
+```
+
+{: .note }
+The hits of other channels are hidden after the search: the number of hits, the pages and the facets still count them,
+filters and sortings on `_PRODUCT.price` use the price of the first channel. Shops whose channels sell clearly different
+products use one collection per channel.
 
 ## Bundle options
 
@@ -51,6 +81,26 @@ bin/console config:dump-reference batteryincluded
 
 The [configuration reference of the bundle](https://bundle.batteryincluded.eiling.io/configuration) describes every
 option.
+
+## Timeouts
+
+Every shop page with a search, a slider or recommendations waits for the API. The plugin sets shorter curl timeouts
+than the bundle (10 and 5 seconds), your configuration overrides them:
+
+```yaml
+# config/packages/batteryincluded.yaml
+batteryincluded:
+    curl:
+        timeout: 5             # seconds, searches, suggestions and recommendations, 0 for no limit
+        connect_timeout: 2     # seconds, 0 for no limit
+```
+
+The timeout also applies to the read requests of `bi:diff` and `bi:status`. Imports, updates and deletes have no
+limit. With `http_client` the Symfony http client sends the requests, configure its timeouts there.
+
+If the API is unreachable, the shop renders the pages without the results of BatteryIncluded: no products on the
+search and category pages, no suggestions, sliders and recommendations. The failed request is logged to the
+`batteryincluded` channel. Error responses of the API (4xx/5xx) are handled the same way.
 
 ## Plugin options
 

@@ -6,5 +6,8 @@ database:
     type: mariadb
     version: "10.11"
 docroot: vendor/sylius/test-application/public
+# FASHION_CH of the demo shop, see tests/TestApplication/config/shared_channel.php
+additional_hostnames:
+    - ch.syliusbatteryincludedplugin
 composer_version: "2"
 nodejs_version: "20"

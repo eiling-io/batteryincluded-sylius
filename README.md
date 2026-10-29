@@ -41,7 +41,8 @@ BATTERYINCLUDED_API_KEY=""
    All further settings (cache, logging, http client, ...) are described in the
    [bundle configuration](https://bundle.batteryincluded.eiling.io/configuration).
 
-   With more than one channel configure one collection per channel and assign them to the channels:
+   With more than one channel assign a collection to every channel, channels may also share one (see
+   [shared collections](docs/configuration.md#shared-collections)):
 
 ```yaml
 # config/packages/batteryincluded.yaml

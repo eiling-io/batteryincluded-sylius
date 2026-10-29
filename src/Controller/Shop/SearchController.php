@@ -2,10 +2,15 @@
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
+use BatteryIncludedSdk\Highlights\HighlightsResponse;
+use BatteryIncludedSdk\Shop\BrowseResponse;
+use BatteryIncludedSdk\Suggest\SuggestResponse;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Dto\ContentPageDto;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ProductHits;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ApiCallGuard;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,10 +24,11 @@ class SearchController extends BatteryIncludedBaseController
         ServiceFactory $serviceFactory,
         ProductRepositoryInterface $productRepository,
         SearchStructFactory $searchStructFactory,
+        ApiCallGuard $apiCallGuard,
         private readonly PresetProductFinder $presetProductFinder,
         ?CmsPageFinder $cmsPageFinder = null,
     ) {
-        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $cmsPageFinder);
+        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $apiCallGuard, $cmsPageFinder);
     }
 
     public function search(Request $request): Response
@@ -80,16 +86,15 @@ class SearchController extends BatteryIncludedBaseController
         $searchStruct = $this->searchStructFactory->createSuggestSearchStruct();
         $searchStruct->setQuery($searchWord);
 
-        $result = $this->serviceFactory->getSuggestService()->suggestWithFilter($searchStruct);
-
-        $orderNumbers = array_values(
-            array_filter(
-                array_map(
-                    static fn($item) => $item['_PRODUCT']['ordernumber'] ?? null,
-                    $result->getDocuments()
-                )
-            )
+        $result = $this->apiCallGuard->call(
+            'suggest',
+            fn () => $this->serviceFactory->getSuggestService()->suggestWithFilter($searchStruct),
+            new SuggestResponse('', 503),
         );
+
+        // with the translations and the availability of the channel merged
+        $documents = $result->getResolvedDocuments();
+        $orderNumbers = ProductHits::orderNumbers($documents);
 
         $products = [];
         if (!empty($orderNumbers)) {
@@ -99,14 +104,18 @@ class SearchController extends BatteryIncludedBaseController
             $products = $unsorted;
         }
 
-        $contentPages = $this->cmsPageFinder?->findByCodes($this->cmsPageFinder->getCodes($result->getDocuments())) ?? [];
+        $contentPages = $this->cmsPageFinder?->findByCodes($this->cmsPageFinder->getCodes($documents)) ?? [];
 
         $queryCompletions = $result->getQueryCompletions();
 
         $highlights = [];
         if (strlen($searchWord) === 0) {
             // the query suggestions are configured per locale
-            $highlights = $this->serviceFactory->getHighlightsService()->getHighlights($request->getLocale())->getAll();
+            $highlights = $this->apiCallGuard->call(
+                'highlights',
+                fn () => $this->serviceFactory->getHighlightsService()->getHighlights($request->getLocale()),
+                new HighlightsResponse('', 503),
+            )->getAll();
         }
 
         return $this->render(
@@ -128,7 +137,11 @@ class SearchController extends BatteryIncludedBaseController
         $searchStruct->setQuery($searchWord);
         $searchStruct->addFilter('type', ContentPageDto::TYPE);
         $searchStruct->setPerPage(self::CONTENT_PAGES_PER_SEARCH);
-        $result = $this->serviceFactory->getBrowseService()->browse($searchStruct);
+        $result = $this->apiCallGuard->call(
+            'content page search',
+            fn () => $this->serviceFactory->getBrowseService()->browse($searchStruct),
+            new BrowseResponse('', $searchStruct, 503),
+        );
 
         return $this->cmsPageFinder->findByCodes($this->cmsPageFinder->getCodes($result->getRawHits()));
     }

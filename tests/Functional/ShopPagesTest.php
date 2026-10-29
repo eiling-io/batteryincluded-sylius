@@ -13,6 +13,7 @@ use Sylius\Resource\Model\TranslatableInterface;
 use Sylius\Resource\Model\TranslationInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Tests\EilingIo\SyliusBatteryIncludedPlugin\Fixture\SharedChannelFixture;
 
 /**
  * Renders the shop pages of the plugin in english and german with the fixtures of the test application. The api
@@ -173,9 +174,53 @@ final class ShopPagesTest extends WebTestCase
         self::assertStringContainsString('id=PRODUCT-' . $this->page['id'], urldecode(MockApi::requestedUrls('/documents/recommendations')[0]));        $this->assertLocaleOf('/documents/recommendations', 'en-us');
     }
 
-    private function request(string $url): void
+    public function testWithoutApiThePagesAreRenderedWithoutResults(): void
     {
-        $this->client->request('GET', $url);
+        MockApi::$unreachable = true;
+
+        foreach ([
+            '/en_US/',
+            '/en_US/search?search=shirt',
+            '/en_US/searchAjax?search=shirt',
+            '/en_US/searchAjax?search=',
+            '/en_US/taxons/' . $this->page['taxonSlugs']['en_US'],
+            '/en_US/products/' . $this->page['slug'],
+        ] as $url) {
+            $this->request($url);
+
+            self::assertStringNotContainsString($this->hit['names']['en_US'], (string) $this->client->getResponse()->getContent(), $url);
+        }
+        self::assertNotEmpty(MockApi::requestedUrls('/documents/browse', '/documents/suggest', '/documents/highlights', '/documents/recommendations'));
+    }
+
+    public function testTheChannelsOfTheSharedCollectionRequestTheirAvailability(): void
+    {
+        foreach (['localhost' => 'fashion-web', SharedChannelFixture::HOSTNAME => 'fashion-ch'] as $host => $scope) {
+            MockApi::$requests = [];
+            $this->request('/en_US/search?search=shirt', $host);
+            $this->request('/en_US/searchAjax?search=shirt', $host);
+            $this->request('/en_US/products/' . $this->page['slug'], $host);
+
+            foreach (['/documents/browse', '/documents/suggest', '/documents/recommendations'] as $path) {
+                self::assertSame($scope, MockApi::parameter(MockApi::requestedUrls($path)[0], 'v', 'availability'), $host . $path);
+            }
+        }
+    }
+
+    public function testProductsWhichAreInactiveInTheChannelAreHidden(): void
+    {
+        MockApi::$inactiveProductCodes = [$this->hit['code']];
+
+        foreach (['/en_US/search?search=shirt', '/en_US/searchAjax?search=shirt', '/en_US/', '/en_US/products/' . $this->page['slug']] as $url) {
+            $this->request($url);
+
+            self::assertStringNotContainsString($this->hit['names']['en_US'], (string) $this->client->getResponse()->getContent(), $url);
+        }
+    }
+
+    private function request(string $url, string $host = 'localhost'): void
+    {
+        $this->client->request('GET', $url, server: ['HTTP_HOST' => $host]);
 
         self::assertResponseIsSuccessful();
     }

@@ -69,6 +69,11 @@ Create the presets in the BatteryIncluded portal and configure their IDs per col
 [Presets](configuration#presets). A slider without preset is not shown: the gateway ignores unknown preset IDs and
 would deliver arbitrary documents. With the Sylius CMS plugin the sliders request products only.
 
+## Without API
+
+A timeout or connection error does not break a page: it is rendered without the results of BatteryIncluded and the
+error is logged to the `batteryincluded` channel, see [Timeouts](configuration#timeouts).
+
 ## Translations
 
 All texts use the domain `messages` with the prefix `eiling_io_sylius_battery_included.`, the English translations are

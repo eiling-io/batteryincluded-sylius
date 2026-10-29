@@ -18,8 +18,9 @@ use Sylius\Component\Core\Model\ChannelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Delivers the enabled and published pages of the Sylius CMS plugin of one channel to its collection. Only registered
- * if the CMS plugin is installed and enabled, one instance per configured channel.
+ * Delivers the enabled and published pages of the Sylius CMS plugin of the channels of a collection. Only registered
+ * if the CMS plugin is installed and enabled, one instance per configured collection. The shop shows only the pages of
+ * its channel, see CmsPageFinder.
  */
 final class CmsPageDataProvider implements CollectionAwareDataProviderInterface, PartialDataProviderInterface
 {
@@ -31,17 +32,21 @@ final class CmsPageDataProvider implements CollectionAwareDataProviderInterface,
         'textarea' => 'textarea',
     ];
 
-    private ?ChannelInterface $channel = null;
+    /**
+     * @var list<ChannelInterface>|null
+     */
+    private ?array $channels = null;
 
     /**
      * @param EntityRepository<PageInterface> $pageRepository
+     * @param list<string>                    $channelCodes   channels of the collection, none for the first enabled channel
      */
     public function __construct(
         private readonly EntityRepository $pageRepository,
         private readonly ChannelRepositoryInterface $channelRepository,
         private readonly UrlGeneratorInterface $router,
         private readonly string $collection = BatteryincludedBundle::DEFAULT_COLLECTION,
-        private readonly ?string $channelCode = null,
+        private readonly array $channelCodes = [],
     ) {
     }
 
@@ -52,12 +57,12 @@ final class CmsPageDataProvider implements CollectionAwareDataProviderInterface,
 
     public function getBatches(int $batchSize): \Generator
     {
-        $channel = $this->getChannel();
+        $channels = $this->getChannels();
         $offset = 0;
 
         do {
             /** @var list<PageInterface> $pages */
-            $pages = $this->createQueryBuilder($channel)
+            $pages = $this->createQueryBuilder($channels)
                 ->orderBy('o.id', 'ASC')
                 ->setFirstResult($offset)
                 ->setMaxResults($batchSize)
@@ -66,7 +71,7 @@ final class CmsPageDataProvider implements CollectionAwareDataProviderInterface,
             $offset += $batchSize;
 
             if ($pages !== []) {
-                yield array_map(fn (PageInterface $page) => $this->createDto($page, $channel), $pages);
+                yield array_map(fn (PageInterface $page) => $this->createDto($page, $channels), $pages);
             }
         } while (count($pages) === $batchSize);
     }
@@ -84,54 +89,64 @@ final class CmsPageDataProvider implements CollectionAwareDataProviderInterface,
             return [];
         }
 
-        $channel = $this->getChannel();
+        $channels = $this->getChannels();
         /** @var list<PageInterface> $pages */
-        $pages = $this->createQueryBuilder($channel)
+        $pages = $this->createQueryBuilder($channels)
             ->andWhere('o.id IN (:ids)')
             ->setParameter('ids', $pageIds)
             ->getQuery()
             ->getResult();
 
-        return array_map(fn (PageInterface $page) => $this->createDto($page, $channel), $pages);
+        return array_map(fn (PageInterface $page) => $this->createDto($page, $channels), $pages);
     }
 
-    private function createQueryBuilder(ChannelInterface $channel): QueryBuilder
+    /**
+     * @param list<ChannelInterface> $channels
+     */
+    private function createQueryBuilder(array $channels): QueryBuilder
     {
+        // a page of several channels once
         return $this->pageRepository->createQueryBuilder('o')
+            ->distinct()
             ->innerJoin('o.channels', 'channel')
-            ->andWhere('channel = :channel')
+            ->andWhere('channel IN (:channels)')
             ->andWhere('o.enabled = :enabled')
             ->andWhere('o.publishAt IS NULL OR o.publishAt <= :now')
-            ->setParameter('channel', $channel)
+            ->setParameter('channels', $channels)
             ->setParameter('enabled', true)
             ->setParameter('now', new \DateTimeImmutable());
     }
 
-    private function getChannel(): ChannelInterface
+    /**
+     * @return list<ChannelInterface>
+     */
+    private function getChannels(): array
     {
-        if ($this->channel !== null) {
-            return $this->channel;
-        }
-
-        $channel = $this->channelCode !== null
-            ? $this->channelRepository->findOneByCode($this->channelCode)
-            : ($this->channelRepository->findEnabled()[0] ?? null);
-
-        if (!$channel instanceof ChannelInterface) {
-            throw new \RuntimeException(sprintf('The channel "%s" of the collection "%s" does not exist.', $this->channelCode ?? '(first enabled)', $this->collection));
-        }
-
-        return $this->channel = $channel;
+        return $this->channels ??= ChannelFinder::find($this->channelRepository, $this->channelCodes, $this->collection);
     }
 
-    private function createDto(PageInterface $page, ChannelInterface $channel): ContentPageDto
+    /**
+     * @param list<ChannelInterface> $channels
+     */
+    private function createDto(PageInterface $page, array $channels): ContentPageDto
     {
         $dto = (new ContentPageDto((string) $page->getId()))->setCode($page->getCode());
 
-        // only the languages of the channel, like the products
+        // the defaults of the first channel of the page
+        $channel = $channels[0];
+        foreach ($channels as $candidate) {
+            if ($page->hasChannel($candidate)) {
+                $channel = $candidate;
+                break;
+            }
+        }
+
+        // only the languages of the channels, like the products
         $locales = [];
-        foreach ($channel->getLocales() as $locale) {
-            $locales[] = $locale->getCode();
+        foreach ($channels as $candidate) {
+            foreach ($candidate->getLocales() as $locale) {
+                $locales[] = $locale->getCode();
+            }
         }
 
         $translations = [];

@@ -39,7 +39,7 @@ final class ProductDataProviderTest extends TestCase
             $this->createStub(UrlGeneratorInterface::class),
             $this->createStub(FilterService::class),
             $collection,
-            'FASHION_WEB',
+            ['FASHION_WEB'],
         );
     }
 }

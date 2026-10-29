@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\EilingIo\SyliusBatteryIncludedPlugin\Unit\Search;
 
 use Batteryincluded\BatteryincludedBundle\Collection\CollectionRegistry;
+use BatteryIncludedSdk\Exception\NetworkException;
 use BatteryIncludedSdk\Shop\BrowseResponse;
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use BatteryIncludedSdk\Shop\BrowseService;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ApiCallGuard;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
 use PHPUnit\Framework\TestCase;
@@ -59,6 +61,16 @@ final class PresetProductFinderTest extends TestCase
 
         self::assertNotNull($this->searchStruct);
         self::assertSame(['PRODUCT'], $this->searchStruct->getFilters()['type']);
+    }
+
+    public function testWithoutApiTheSliderIsEmpty(): void
+    {
+        $browseService = $this->createMock(BrowseService::class);
+        $browseService->expects(self::once())->method('browse')->willThrowException(new NetworkException('GET https://api.test/ failed: timeout'));
+
+        $finder = $this->createFinder($browseService, ['default' => ['homepage' => 'home-id', 'not_found' => null]]);
+
+        self::assertSame([], $finder->find(PresetProductFinder::HOMEPAGE));
     }
 
     /**
@@ -120,8 +132,9 @@ final class PresetProductFinderTest extends TestCase
         return new PresetProductFinder(
             new ServiceFactory($registry, $channelCollectionResolver),
             $productRepository,
-            new SearchStructFactory($localeContext),
+            new SearchStructFactory($localeContext, $channelCollectionResolver),
             $channelCollectionResolver,
+            new ApiCallGuard(),
             $presets,
             $cmsPageFinder,
         );

@@ -3,6 +3,7 @@ imports:
     - { resource: "services_test.php" }
     - { resource: "cms.php" }
     - { resource: "demo_data.php" }
+    - { resource: "shared_channel.php" }
 
 eiling_io_sylius_battery_included:
     channels:

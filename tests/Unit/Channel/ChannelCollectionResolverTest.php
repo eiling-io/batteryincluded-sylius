@@ -33,6 +33,23 @@ final class ChannelCollectionResolverTest extends TestCase
         self::assertSame('ch', $resolver->resolve());
     }
 
+    public function testChannelsSharingACollectionRequestTheirAvailability(): void
+    {
+        $resolver = new ChannelCollectionResolver($this->channelContext('FASHION_CH'), ['FASHION_WEB' => 'default', 'FASHION_CH' => 'default', 'FASHION_AT' => 'at']);
+
+        self::assertSame('FASHION_CH', $resolver->resolveAvailability());
+        self::assertSame('FASHION_WEB', $resolver->resolveAvailability('FASHION_WEB'));
+    }
+
+    public function testAChannelWithItsOwnCollectionRequestsNoAvailability(): void
+    {
+        $resolver = new ChannelCollectionResolver($this->channelContext('FASHION_AT'), ['FASHION_WEB' => 'default', 'FASHION_CH' => 'default', 'FASHION_AT' => 'at']);
+
+        self::assertNull($resolver->resolveAvailability());
+        self::assertNull($resolver->resolveAvailability('OTHER'));
+        self::assertNull((new ChannelCollectionResolver($this->channelContext('FASHION_WEB')))->resolveAvailability());
+    }
+
     private function channelContext(string $code): ChannelContextInterface
     {
         $channel = $this->createStub(ChannelInterface::class);

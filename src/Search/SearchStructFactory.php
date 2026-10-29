@@ -6,11 +6,13 @@ namespace EilingIo\SyliusBatteryIncludedPlugin\Search;
 
 use BatteryIncludedSdk\Shop\BrowseSearchStruct;
 use BatteryIncludedSdk\Suggest\SuggestSearchStruct;
+use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 
 /**
  * Search structs for the locale of the shop, the gateway delivers the translations of `_PRODUCT_i18n` and
- * `_CONTENT_i18n` for it. Without locale the structs of the SDK request `DE`.
+ * `_CONTENT_i18n` for it. Without locale the structs of the SDK request `DE`. Channels sharing a collection request
+ * their availability, see ChannelCollectionResolver::resolveAvailability().
  */
 final readonly class SearchStructFactory
 {
@@ -21,23 +23,23 @@ final readonly class SearchStructFactory
 
     public const NAME_FIELD = '_PRODUCT_i18n.name';
 
-    public function __construct(private LocaleContextInterface $localeContext)
-    {
+    public function __construct(
+        private LocaleContextInterface $localeContext,
+        private ChannelCollectionResolver $channelCollectionResolver,
+    ) {
     }
 
     public function createBrowseSearchStruct(): BrowseSearchStruct
     {
-        $searchStruct = new BrowseSearchStruct();
-        $searchStruct->setLocale($this->localeContext->getLocaleCode());
-
-        return $searchStruct;
+        return (new BrowseSearchStruct())
+            ->setLocale($this->localeContext->getLocaleCode())
+            ->setAvailability($this->channelCollectionResolver->resolveAvailability());
     }
 
     public function createSuggestSearchStruct(): SuggestSearchStruct
     {
-        $searchStruct = new SuggestSearchStruct();
-        $searchStruct->setLocale($this->localeContext->getLocaleCode());
-
-        return $searchStruct;
+        return (new SuggestSearchStruct())
+            ->setLocale($this->localeContext->getLocaleCode())
+            ->setAvailability($this->channelCollectionResolver->resolveAvailability());
     }
 }

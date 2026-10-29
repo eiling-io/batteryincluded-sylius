@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\EilingIo\SyliusBatteryIncludedPlugin\Unit\DependencyInjection;
 
+use Batteryincluded\BatteryincludedBundle\BatteryincludedBundle;
 use Batteryincluded\BatteryincludedBundle\Provider\DataProviderInterface;
 use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
@@ -13,7 +14,6 @@ use EilingIo\SyliusBatteryIncludedPlugin\Document\ShopDocumentUrlResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Sync\DocumentChangeListener;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
@@ -26,7 +26,7 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
         $provider = $container->getDefinition('eiling_io_sylius_battery_included.product_data_provider.default');
         self::assertSame(ProductDataProvider::class, $provider->getClass());
         self::assertSame('default', $provider->getArgument('$collection'));
-        self::assertNull($provider->getArgument('$channelCode'));
+        self::assertSame([], $provider->getArgument('$channelCodes'));
         self::assertSame([], $container->getDefinition(ChannelCollectionResolver::class)->getArgument('$channelCollections'));
     }
 
@@ -41,15 +41,20 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
         ], $this->providerIds($container));
         $provider = $container->getDefinition('eiling_io_sylius_battery_included.product_data_provider.ch');
         self::assertSame('ch', $provider->getArgument('$collection'));
-        self::assertSame('FASHION_CH', $provider->getArgument('$channelCode'));
+        self::assertSame(['FASHION_CH'], $provider->getArgument('$channelCodes'));
         self::assertSame($channels, $container->getDefinition(ChannelCollectionResolver::class)->getArgument('$channelCollections'));
     }
 
-    public function testACollectionCanOnlyBeAssignedToOneChannel(): void
+    public function testChannelsSharingACollectionGetOneProvider(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
+        $container = $this->load(['channels' => ['FASHION_WEB' => 'default', 'FASHION_CH' => 'default', 'FASHION_AT' => 'at']], ['SyliusCmsPlugin' => \stdClass::class]);
 
-        $this->load(['channels' => ['FASHION_WEB' => 'default', 'FASHION_CH' => 'default']]);
+        // in the order of the configuration, the first channel delivers the defaults
+        self::assertSame(['FASHION_WEB', 'FASHION_CH'], $container->getDefinition('eiling_io_sylius_battery_included.product_data_provider.default')->getArgument('$channelCodes'));
+        self::assertSame(['FASHION_WEB', 'FASHION_CH'], $container->getDefinition('eiling_io_sylius_battery_included.cms_page_data_provider.default')->getArgument('$channelCodes'));
+        self::assertSame(['FASHION_AT'], $container->getDefinition('eiling_io_sylius_battery_included.product_data_provider.at')->getArgument('$channelCodes'));
+        // every collection is synced once
+        self::assertSame(['default', 'at'], $container->getDefinition(DocumentChangeListener::class)->getArgument('$collections'));
     }
 
     public function testWithoutCmsPluginNoPagesAreExported(): void
@@ -67,7 +72,7 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
         self::assertTrue($container->hasDefinition(CmsPageFinder::class));
         self::assertContains('eiling_io_sylius_battery_included.cms_page_data_provider.default', $this->providerIds($container));
         $provider = $container->getDefinition('eiling_io_sylius_battery_included.cms_page_data_provider.ch');
-        self::assertSame('FASHION_CH', $provider->getArgument('$channelCode'));
+        self::assertSame(['FASHION_CH'], $provider->getArgument('$channelCodes'));
         self::assertSame('sylius_cms.repository.page', (string) $provider->getArgument('$pageRepository'));
     }
 
@@ -108,6 +113,30 @@ final class EilingIoSyliusBatteryIncludedExtensionTest extends TestCase
     public function testSyncingChangesCanBeDisabled(): void
     {
         self::assertFalse($this->load(['sync_changes' => false])->hasDefinition(DocumentChangeListener::class));
+    }
+
+    public function testTheShopWaitsShorterForCurl(): void
+    {
+        $container = new ContainerBuilder();
+        $container->registerExtension((new BatteryincludedBundle())->getContainerExtension());
+        $container->loadFromExtension('batteryincluded', ['curl' => ['timeout' => 8]]);
+
+        (new EilingIoSyliusBatteryIncludedExtension())->prepend($container);
+
+        // prepended, so the configuration of the project wins
+        self::assertSame([
+            ['curl' => ['timeout' => 5, 'connect_timeout' => 2]],
+            ['curl' => ['timeout' => 8]],
+        ], $container->getExtensionConfig('batteryincluded'));
+    }
+
+    public function testWithoutBundleNoTimeoutsArePrepended(): void
+    {
+        $container = new ContainerBuilder();
+
+        (new EilingIoSyliusBatteryIncludedExtension())->prepend($container);
+
+        self::assertFalse($container->hasExtension('batteryincluded'));
     }
 
     /**

@@ -31,6 +31,14 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
      */
     private const CMS_BUNDLE = 'SyliusCmsPlugin';
 
+    /**
+     * Seconds of curl for a search, suggestion or recommendation and to connect, the bundle waits 10 and 5 seconds.
+     * Every shop page waits for them, without the api it is rendered without results, see ApiCallGuard.
+     */
+    public const CURL_TIMEOUT = 5;
+
+    public const CURL_CONNECT_TIMEOUT = 2;
+
     /** @psalm-suppress UnusedVariable */
     public function load(array $configs, ContainerBuilder $container): void
     {
@@ -54,7 +62,7 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
         if ($config['sync_changes']) {
             $container->register(DocumentChangeListener::class, DocumentChangeListener::class)
                 ->setAutowired(true)
-                ->setArgument('$collections', $config['channels'] === [] ? [BatteryincludedBundle::DEFAULT_COLLECTION] : array_values($config['channels']))
+                ->setArgument('$collections', $config['channels'] === [] ? [BatteryincludedBundle::DEFAULT_COLLECTION] : array_values(array_unique($config['channels'])))
                 ->setArgument('$cmsPages', $cmsPages)
                 ->addTag('doctrine.event_listener', ['event' => 'onFlush'])
                 ->addTag('doctrine.event_listener', ['event' => 'postFlush'])
@@ -65,10 +73,18 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
     public function prepend(ContainerBuilder $container): void
     {
         $this->prependDoctrineMigrations($container);
+
+        // defaults only, the configuration of the project wins; imports, updates and deletes have no limit
+        if ($container->hasExtension('batteryincluded')) {
+            $container->prependExtensionConfig('batteryincluded', [
+                'curl' => ['timeout' => self::CURL_TIMEOUT, 'connect_timeout' => self::CURL_CONNECT_TIMEOUT],
+            ]);
+        }
     }
 
     /**
-     * One provider per channel, each delivers only to the collection of its channel.
+     * One provider per collection with the channels of the collection, without channels the first enabled channel
+     * is exported into the default collection.
      *
      * @param array<string, string> $channels
      *
@@ -76,17 +92,18 @@ final class EilingIoSyliusBatteryIncludedExtension extends AbstractResourceExten
      */
     private function registerDataProviders(string $name, string $class, array $channels, ContainerBuilder $container): array
     {
-        if ($channels === []) {
-            $channels = [null => BatteryincludedBundle::DEFAULT_COLLECTION];
+        $channelCodesByCollection = $channels === [] ? [BatteryincludedBundle::DEFAULT_COLLECTION => []] : [];
+        foreach ($channels as $channelCode => $collection) {
+            $channelCodesByCollection[$collection][] = (string) $channelCode;
         }
 
         $ids = [];
-        foreach ($channels as $channelCode => $collection) {
+        foreach ($channelCodesByCollection as $collection => $channelCodes) {
             $ids[] = $id = 'eiling_io_sylius_battery_included.' . $name . '.' . $collection;
             $container->register($id, $class)
                 ->setAutowired(true)
-                ->setArgument('$collection', $collection)
-                ->setArgument('$channelCode', $channelCode === '' ? null : (string) $channelCode)
+                ->setArgument('$collection', (string) $collection)
+                ->setArgument('$channelCodes', $channelCodes)
                 ->addTag(DataProviderInterface::class);
         }
 

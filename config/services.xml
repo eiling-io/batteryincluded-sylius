@@ -37,6 +37,9 @@
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory"  public="true" />
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory" />
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Search\PresetProductFinder" />
+        <service id="EilingIo\SyliusBatteryIncludedPlugin\Search\ApiCallGuard">
+            <tag name="monolog.logger" channel="batteryincluded" />
+        </service>
         <!-- tagged by autoconfiguration, see DocumentUrlResolverInterface -->
         <service id="EilingIo\SyliusBatteryIncludedPlugin\Document\ShopDocumentUrlResolver" />
     </services>

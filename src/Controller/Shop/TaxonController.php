@@ -6,6 +6,7 @@ namespace EilingIo\SyliusBatteryIncludedPlugin\Controller\Shop;
 
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
+use EilingIo\SyliusBatteryIncludedPlugin\Search\ApiCallGuard;
 use EilingIo\SyliusBatteryIncludedPlugin\Search\SearchStructFactory;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Taxonomy\Model\TaxonInterface;
@@ -21,10 +22,11 @@ final class TaxonController extends BatteryIncludedBaseController
         ServiceFactory $serviceFactory,
         ProductRepositoryInterface $productRepository,
         SearchStructFactory $searchStructFactory,
+        ApiCallGuard $apiCallGuard,
         private readonly TaxonRepositoryInterface $taxonRepository,
         ?CmsPageFinder $cmsPageFinder = null,
     ) {
-        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $cmsPageFinder);
+        parent::__construct($serviceFactory, $productRepository, $searchStructFactory, $apiCallGuard, $cmsPageFinder);
     }
 
     public function index(Request $request): Response

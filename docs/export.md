@@ -9,12 +9,13 @@ nav_order: 5
 1. TOC
 {:toc}
 
-The plugin registers one `ProductDataProvider` per configured channel. The commands and services of the bundle use it
+The plugin registers one `ProductDataProvider` per collection with the channels of the collection. The commands and services of the bundle use it
 like every other [data provider](https://bundle.batteryincluded.eiling.io/export#data-providers).
 
 ## Exported products
 
-Only enabled products assigned to the channel are exported. Every product becomes a document of the type `PRODUCT`
+Only enabled products assigned to a channel of the collection are exported, channels sharing a collection export
+their status and price as availability, see [Shared collections](configuration#shared-collections). Every product becomes a document of the type `PRODUCT`
 with the id `PRODUCT-<product id>`:
 
 | Field | Source |

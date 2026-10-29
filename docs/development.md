@@ -30,6 +30,14 @@ BATTERYINCLUDED_API_KEY=your-api-key
 
 Export the fixtures with `ddev exec vendor/bin/console bi:export --force`.
 
+The demo shop has two channels sharing the collection `default`, see [Shared collections](configuration#shared-collections):
+`FASHION_WEB` at `https://syliusbatteryincludedplugin.ddev.site/` and `FASHION_CH` (no caps, 10 % more expensive) at
+`https://ch.syliusbatteryincludedplugin.ddev.site/`. Add `FASHION_CH` to an existing database without resetting it:
+
+```bash
+ddev exec vendor/bin/console sylius:fixtures:load batteryincluded_shared_channel -n
+```
+
 ## Tests
 
 The unit tests need no database. The functional tests render the shop pages and run the console commands with the

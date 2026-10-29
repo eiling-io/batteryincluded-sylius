@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EilingIo\SyliusBatteryIncludedPlugin\Search;
 
+use BatteryIncludedSdk\Shop\BrowseResponse;
 use EilingIo\SyliusBatteryIncludedPlugin\Channel\ChannelCollectionResolver;
 use EilingIo\SyliusBatteryIncludedPlugin\Cms\CmsPageFinder;
 use EilingIo\SyliusBatteryIncludedPlugin\Factory\ServiceFactory;
@@ -29,6 +30,7 @@ final readonly class PresetProductFinder
         private ProductRepositoryInterface $productRepository,
         private SearchStructFactory $searchStructFactory,
         private ChannelCollectionResolver $channelCollectionResolver,
+        private ApiCallGuard $apiCallGuard,
         private array $presets = [],
         // only with the Sylius CMS plugin, the collection then contains content pages as well
         private ?CmsPageFinder $cmsPageFinder = null,
@@ -53,14 +55,14 @@ final readonly class PresetProductFinder
             $struct->addFilter('type', ProductDataProvider::TYPE);
         }
 
-        $orderNumbers = array_values(
-            array_filter(
-                array_map(
-                    static fn($item) => $item['document']['_PRODUCT']['ordernumber'] ?? null,
-                    $this->serviceFactory->getBrowseService()->browse($struct)->getHits()
-                )
-            )
+        // without the api the slider is not shown
+        $result = $this->apiCallGuard->call(
+            'preset ' . $slider,
+            fn () => $this->serviceFactory->getBrowseService()->browse($struct),
+            new BrowseResponse('', $struct, 503),
         );
+
+        $orderNumbers = ProductHits::orderNumbers($result->getHits());
 
         if (empty($orderNumbers)) {
             return [];

@@ -56,8 +56,10 @@ Verify: `bin/console bi:status` exits with 0.
 
 ## 2. Several channels
 
-Only needed with more than one channel. Each channel gets one collection of the bundle, channels without entry use
-`default`. A collection can only be assigned to one channel.
+Only needed with more than one channel. Each channel gets a collection of the bundle, channels without entry use
+`default`. Channels may share a collection: the first channel delivers the defaults, every channel exports status and
+price to `_PRODUCT_availability.<channel code>` and the shop requests its channel as `v[availability]`. Configure the
+portal variable `{"name": "availability", "default": "<first channel code>", "root": ["_PRODUCT_availability"]}` then.
 
 ```yaml
 # config/packages/batteryincluded.yaml
@@ -137,6 +139,8 @@ shown in the suggestions and above the products of the search page. Disable it w
   the URL
 - Recommendations (`related`, `also`, `together`) on the product page, in the cart and the offcanvas cart
 - Preset sliders on the homepage and the 404 page
+- Without API (timeout, connection error) the pages render without results, the error is logged to the
+  `batteryincluded` channel. The plugin prepends `batteryincluded.curl.timeout: 5` and `connect_timeout: 2`.
 
 ## 6. Customizing
 

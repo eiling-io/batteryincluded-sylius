@@ -10,6 +10,8 @@ use Symfony\Component\HttpClient\Response\MockResponse;
  * Response factory of the MockHttpClient of the test environment, see tests/TestApplication/config/config.yaml.
  * Every endpoint answers with the products of $productCodes and the content pages of $contentPageCodes, the filter
  * `type` restricts browse to one of them, browse with a preset delivers $presetProductCodes. Every request is recorded.
+ * With $unreachable every request fails like a timeout. The products of $inactiveProductCodes are inactive in the
+ * requested availability, like the gateway resolves `_PRODUCT_availability`.
  */
 final class MockApi
 {
@@ -38,6 +40,13 @@ final class MockApi
      */
     public static array $requests = [];
 
+    public static bool $unreachable = false;
+
+    /**
+     * @var list<string> ordernumbers which are inactive in the requested availability
+     */
+    public static array $inactiveProductCodes = [];
+
     public static function reset(): void
     {
         self::$productCodes = [];
@@ -45,6 +54,8 @@ final class MockApi
         self::$contentPageCodes = [];
         self::$facets = [];
         self::$requests = [];
+        self::$unreachable = false;
+        self::$inactiveProductCodes = [];
     }
 
     /**
@@ -75,6 +86,11 @@ final class MockApi
         $body = is_string($options['body'] ?? null) ? $options['body'] : '';
         self::$requests[] = ['method' => $method, 'url' => $url, 'body' => $body];
 
+        if (self::$unreachable) {
+            // a transport error, the SymfonyHttpClient of the bundle throws the NetworkException of the SDK
+            return new MockResponse('', ['error' => 'Operation timed out after 10001 milliseconds']);
+        }
+
         $path = (string) parse_url($url, PHP_URL_PATH);
         parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
         $types = (array) ($query['f']['type'] ?? ['PRODUCT', 'CONTENT']);
@@ -82,7 +98,11 @@ final class MockApi
         $documents = [];
         if (in_array('PRODUCT', $types, true)) {
             foreach (($query['preset'] ?? '') !== '' ? self::$presetProductCodes : self::$productCodes as $code) {
-                $documents[] = ['id' => 'PRODUCT-' . $code, 'type' => 'PRODUCT', '_PRODUCT' => ['ordernumber' => $code]];
+                $document = ['id' => 'PRODUCT-' . $code, 'type' => 'PRODUCT', '_PRODUCT' => ['ordernumber' => $code]];
+                if (in_array($code, self::$inactiveProductCodes, true)) {
+                    $document['_PRODUCT_availability'] = ['active' => false];
+                }
+                $documents[] = $document;
             }
         }
         if (in_array('CONTENT', $types, true)) {

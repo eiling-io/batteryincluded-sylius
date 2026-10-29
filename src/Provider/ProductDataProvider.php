@@ -25,22 +25,32 @@ use Sylius\Component\Taxonomy\Model\TaxonTranslationInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Delivers the enabled products of one channel to its collection, used by `bi:export`, `bi:sync` and the
- * DocumentSynchronizer of the batteryincluded bundle. One instance is registered per configured channel.
+ * Delivers the enabled products of the channels of a collection, used by `bi:export`, `bi:sync` and the
+ * DocumentSynchronizer of the batteryincluded bundle. One instance is registered per configured collection.
+ *
+ * The first channel of the product (in the order of the configuration) delivers the defaults of `_PRODUCT`. Channels
+ * sharing a collection export their status and price into `_PRODUCT_availability.<channel code>`, a product which is
+ * not in a channel is inactive there.
  */
 final class ProductDataProvider implements CollectionAwareDataProviderInterface, PartialDataProviderInterface
 {
     public const TYPE = 'PRODUCT';
 
-    private ?ChannelInterface $channel = null;
+    /**
+     * @var list<ChannelInterface>|null
+     */
+    private ?array $channels = null;
 
+    /**
+     * @param list<string> $channelCodes channels of the collection, none for the first enabled channel
+     */
     public function __construct(
         private readonly ProductRepositoryInterface $productRepository,
         private readonly ChannelRepositoryInterface $channelRepository,
         private readonly UrlGeneratorInterface $router,
         private readonly FilterService $imagineFilter,
         private readonly string $collection = BatteryincludedBundle::DEFAULT_COLLECTION,
-        private readonly ?string $channelCode = null,
+        private readonly array $channelCodes = [],
     ) {
     }
 
@@ -51,12 +61,12 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
 
     public function getBatches(int $batchSize): \Generator
     {
-        $channel = $this->getChannel();
+        $channels = $this->getChannels();
         $offset = 0;
 
         do {
             /** @var list<ProductInterface> $products */
-            $products = $this->createQueryBuilder($channel)
+            $products = $this->createQueryBuilder($channels)
                 ->orderBy('o.id', 'ASC')
                 ->setFirstResult($offset)
                 ->setMaxResults($batchSize)
@@ -65,7 +75,7 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
             $offset += $batchSize;
 
             if ($products !== []) {
-                yield array_map(fn (ProductInterface $product) => $this->createDto($product, $channel), $products);
+                yield array_map(fn (ProductInterface $product) => $this->createDto($product, $channels), $products);
             }
         } while (count($products) === $batchSize);
     }
@@ -83,48 +93,56 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
             return [];
         }
 
-        $channel = $this->getChannel();
+        $channels = $this->getChannels();
         /** @var list<ProductInterface> $products */
-        $products = $this->createQueryBuilder($channel)
+        $products = $this->createQueryBuilder($channels)
             ->andWhere('o.id IN (:ids)')
             ->setParameter('ids', $productIds)
             ->getQuery()
             ->getResult();
 
-        return array_map(fn (ProductInterface $product) => $this->createDto($product, $channel), $products);
+        return array_map(fn (ProductInterface $product) => $this->createDto($product, $channels), $products);
     }
 
-    private function createQueryBuilder(ChannelInterface $channel): QueryBuilder
+    /**
+     * @param list<ChannelInterface> $channels
+     */
+    private function createQueryBuilder(array $channels): QueryBuilder
     {
         \assert($this->productRepository instanceof EntityRepository);
 
+        // a product of several channels once
         return $this->productRepository->createQueryBuilder('o')
+            ->distinct()
             ->innerJoin('o.channels', 'channel')
-            ->andWhere('channel = :channel')
+            ->andWhere('channel IN (:channels)')
             ->andWhere('o.enabled = :enabled')
-            ->setParameter('channel', $channel)
+            ->setParameter('channels', $channels)
             ->setParameter('enabled', true);
     }
 
-    private function getChannel(): ChannelInterface
+    /**
+     * @return list<ChannelInterface>
+     */
+    private function getChannels(): array
     {
-        if ($this->channel !== null) {
-            return $this->channel;
-        }
-
-        $channel = $this->channelCode !== null
-            ? $this->channelRepository->findOneByCode($this->channelCode)
-            : ($this->channelRepository->findEnabled()[0] ?? null);
-
-        if (!$channel instanceof ChannelInterface) {
-            throw new \RuntimeException(sprintf('The channel "%s" of the collection "%s" does not exist.', $this->channelCode ?? '(first enabled)', $this->collection));
-        }
-
-        return $this->channel = $channel;
+        return $this->channels ??= ChannelFinder::find($this->channelRepository, $this->channelCodes, $this->collection);
     }
 
-    private function createDto(ProductInterface $product, ChannelInterface $channel): ProductBaseDto
+    /**
+     * @param list<ChannelInterface> $channels
+     */
+    private function createDto(ProductInterface $product, array $channels): ProductBaseDto
     {
+        // the defaults of the first channel of the product
+        $channel = $channels[0];
+        foreach ($channels as $candidate) {
+            if ($product->hasChannel($candidate)) {
+                $channel = $candidate;
+                break;
+            }
+        }
+
         $dto = new ProductBaseDto((string) $product->getId(), self::TYPE);
         $dto->setOrdernumber($product->getCode());
         $dto->setImageUrl($this->getImageUrl($product, $channel));
@@ -133,14 +151,22 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
         /** @var ProductVariantInterface|false $variant */
         $variant = $product->getVariants()->first();
         if ($variant !== false) {
+            // the stock is the same in every channel
             $dto->setInstock($variant->getOnHand() - $variant->getOnHold());
-            $channelPricing = $variant->getChannelPricingForChannel($channel);
-            if ($channelPricing !== null && $channelPricing->getPrice() !== null) {
-                $dto->setPrice($channelPricing->getPrice() / 100);
+            $dto->setPrice($this->getPrice($variant, $channel));
+        }
+
+        if (count($channels) > 1) {
+            foreach ($channels as $scope) {
+                $dto->setAvailability(
+                    (string) $scope->getCode(),
+                    active: $product->hasChannel($scope),
+                    price: $variant !== false ? $this->getPrice($variant, $scope) : null,
+                );
             }
         }
 
-        // the default locale of the channel fills _PRODUCT, every locale of the channel _PRODUCT_i18n
+        // the default locale of the channel fills _PRODUCT, every locale of the channels _PRODUCT_i18n
         $defaultLocale = (string) $channel->getDefaultLocale()?->getCode();
         $default = $this->getLocalizedFields($product, $defaultLocale);
         $dto->setName($default['name']);
@@ -152,7 +178,7 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
             $dto->addCategory($category);
         }
 
-        foreach ($this->getLocales($channel) as $locale) {
+        foreach ($this->getLocales($channels) as $locale) {
             $fields = $locale === $defaultLocale ? $default : $this->getLocalizedFields($product, $locale);
             foreach (['name', 'description', 'manufacture', 'shopUrl'] as $field) {
                 if ($fields[$field] !== null) {
@@ -168,17 +194,30 @@ final class ProductDataProvider implements CollectionAwareDataProviderInterface,
         return $dto;
     }
 
+    private function getPrice(ProductVariantInterface $variant, ChannelInterface $channel): ?float
+    {
+        $channelPricing = $variant->getChannelPricingForChannel($channel);
+
+        return $channelPricing !== null && $channelPricing->getPrice() !== null ? $channelPricing->getPrice() / 100 : null;
+    }
+
     /**
+     * Languages of all channels of the collection.
+     *
+     * @param list<ChannelInterface> $channels
+     *
      * @return list<string>
      */
-    private function getLocales(ChannelInterface $channel): array
+    private function getLocales(array $channels): array
     {
         $locales = [];
-        foreach ($channel->getLocales() as $locale) {
-            $locales[] = (string) $locale->getCode();
+        foreach ($channels as $channel) {
+            foreach ($channel->getLocales() as $locale) {
+                $locales[(string) $locale->getCode()] = true;
+            }
         }
 
-        return $locales;
+        return array_keys($locales);
     }
 
     /**
